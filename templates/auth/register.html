@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register - VentureNest{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- Registration Card -->
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-nest text-white text-center py-4 rounded-top-3">
+                    <h2 class="h3 mb-0 fw-bold">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Join VentureNest
+                    </h2>
+                    <p class="mb-0 mt-2 opacity-75">Start managing your venture portfolio today</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <!-- Django Form Errors -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger rounded-3" role="alert">
+                        <h6 class="alert-heading fw-bold mb-2">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Please correct the errors below
+                        </h6>
+                        <ul class="mb-0 ps-3">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field|title }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" novalidate class="needs-validation">
+                        {% csrf_token %}
+                        
+                        <!-- Username Field -->
+                        <div class="mb-4">
+                            <label for="id_username" class="form-label fw-semibold">
+                                <i class="bi bi-person-circle me-2 text-nest"></i>Username
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-at text-muted"></i>
+                                </span>
+                                <input type="text" 
+                                       name="username" 
+                                       id="id_username" 
+                                       class="form-control border-start-0" 
+                                       placeholder="Choose your username" 
+                                       value="{{ form.username.value|default:'' }}"
+                                       required>
+                            </div>
+                            <div class="form-text">This will be your unique identifier on the platform.</div>
+                            <div id="username-feedback" class="invalid-feedback d-none"></div>
+                        </div>
+
+                        <!-- Email Field -->
+                        <div class="mb-4">
+                            <label for="id_email" class="form-label fw-semibold">
+                                <i class="bi bi-envelope me-2 text-nest"></i>Email Address
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-mailbox text-muted"></i>
+                                </span>
+                                <input type="email" 
+                                       name="email" 
+                                       id="id_email" 
+                                       class="form-control border-start-0" 
+                                       placeholder="your@email.com" 
+                                       value="{{ form.email.value|default:'' }}"
+                                       required>
+                            </div>
+                            <div id="email-feedback" class="invalid-feedback d-none"></div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            <label for="id_password1" class="form-label fw-semibold">
+                                <i class="bi bi-shield-lock me-2 text-nest"></i>Password
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-key text-muted"></i>
+                                </span>
+                                <input type="password" 
+                                       name="password1" 
+                                       id="id_password1" 
+                                       class="form-control border-start-0 password-input" 
+                                       placeholder="Create a strong password" 
+                                       required>
+                                <button type="button" class="btn btn-outline-secondary border-start-0 toggle-password" data-target="id_password1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Password Strength Meter -->
+                            <div class="mt-3">
+                                <div class="password-strength-meter mb-2">
+                                    <div class="strength-bar">
+                                        <div class="strength-fill" id="strength-fill"></div>
+                                    </div>
+                                    <small class="strength-text fw-semibold" id="strength-text">Very Weak</small>
+                                </div>
+                                
+                                <!-- Password Rules -->
+                                <div class="password-rules mt-3">
+                                    <small class="text-muted d-block mb-2">Password must contain:</small>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="rule-item" id="rule-length">
+                                                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                <span>8+ characters</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="rule-item" id="rule-uppercase">
+                                                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                <span>Uppercase letter</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="rule-item" id="rule-lowercase">
+                                                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                <span>Lowercase letter</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="rule-item" id="rule-number">
+                                                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                <span>Number</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="rule-item" id="rule-symbol">
+                                                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                <span>Special character</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password Field -->
+                        <div class="mb-4">
+                            <label for="id_password2" class="form-label fw-semibold">
+                                <i class="bi bi-shield-check me-2 text-nest"></i>Confirm Password
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-key-fill text-muted"></i>
+                                </span>
+                                <input type="password" 
+                                       name="password2" 
+                                       id="id_password2" 
+                                       class="form-control border-start-0 password-input" 
+                                       placeholder="Confirm your password" 
+                                       required>
+                                <button type="button" class="btn btn-outline-secondary border-start-0 toggle-password" data-target="id_password2">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div id="confirm-feedback" class="form-text"></div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms-agreement" required>
+                                <label class="form-check-label small" for="terms-agreement">
+                                    I agree to the <a href="{% url 'terms' %}" class="text-nest text-decoration-none">Terms of Service</a> 
+                                    and <a href="{% url 'privacy' %}" class="text-nest text-decoration-none">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold rounded-3" id="registerBtn" disabled>
+                            <i class="bi bi-rocket-takeoff me-2"></i>
+                            <span class="btn-text">Create Account</span>
+                            <div class="spinner-border spinner-border-sm ms-2 d-none" role="status" id="submit-spinner">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </button>
+                    </form>
+
+                    <!-- Login Redirect -->
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <p class="mb-0 text-muted">
+                            Already have an account?
+                            <a href="{% url 'login' %}" class="text-nest fw-semibold text-decoration-none">Sign in here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Password Strength Meter */
+    .password-strength-meter {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .strength-bar {
+        flex: 1;
+        height: 6px;
+        background-color: #e9ecef;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+    }
+
+    .strength-text {
+        min-width: 80px;
+        text-align: right;
+    }
+
+    /* Password Rules */
+    .password-rules .rule-item {
+        display: flex;
+        align-items: center;
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .rule-item.valid {
+        color: var(--color-nest-green);
+    }
+
+    .rule-item.valid i {
+        color: var(--color-nest-green) !important;
+    }
+
+    /* Form Validation States */
+    .is-valid {
+        border-color: var(--color-nest-green) !important;
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    /* Toggle Password Button */
+    .toggle-password {
+        transition: all 0.3s ease;
+    }
+
+    .toggle-password:hover {
+        background-color: var(--color-light-grey);
+    }
+
+    /* Submit Button Loading State */
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('id_password1');
+        const confirmInput = document.getElementById('id_password2');
+        const registerBtn = document.getElementById('registerBtn');
+        const termsCheckbox = document.getElementById('terms-agreement');
+        const strengthFill = document.getElementById('strength-fill');
+        const strengthText = document.getElementById('strength-text');
+        
+        // Password rules elements
+        const rules = {
+            length: document.getElementById('rule-length'),
+            uppercase: document.getElementById('rule-uppercase'),
+            lowercase: document.getElementById('rule-lowercase'),
+            number: document.getElementById('rule-number'),
+            symbol: document.getElementById('rule-symbol')
+        };
+
+        // Password toggle functionality
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
+        });
+
+        // Password strength calculator
+        function calculatePasswordStrength(password) {
+            let score = 0;
+            
+            // Length check
+            if (password.length >= 8) score += 20;
+            if (password.length >= 12) score += 10;
+            
+            // Character variety checks
+            if (/[A-Z]/.test(password)) score += 20;
+            if (/[a-z]/.test(password)) score += 20;
+            if (/[0-9]/.test(password)) score += 20;
+            if (/[^A-Za-z0-9]/.test(password)) score += 20;
+            
+            // Bonus for mixed case and numbers
+            if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 10;
+            if (/[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) score += 10;
+            
+            return Math.min(score, 100);
+        }
+
+        // Update password strength UI
+        function updatePasswordStrength(password) {
+            const strength = calculatePasswordStrength(password);
+            
+            // Update strength bar
+            strengthFill.style.width = `${strength}%`;
+            
+            // Update strength text and color
+            if (strength < 40) {
+                strengthFill.style.backgroundColor = '#dc3545';
+                strengthText.textContent = 'Weak';
+                strengthText.style.color = '#dc3545';
+            } else if (strength < 70) {
+                strengthFill.style.backgroundColor = '#fd7e14';
+                strengthText.textContent = 'Fair';
+                strengthText.style.color = '#fd7e14';
+            } else if (strength < 90) {
+                strengthFill.style.backgroundColor = '#ffc107';
+                strengthText.textContent = 'Good';
+                strengthText.style.color = '#ffc107';
+            } else {
+                strengthFill.style.backgroundColor = '#198754';
+                strengthText.textContent = 'Strong';
+                strengthText.style.color = '#198754';
+            }
+        }
+
+        // Validate password rules
+        function validatePasswordRules(password) {
+            const validations = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                symbol: /[^A-Za-z0-9]/.test(password)
+            };
+
+            // Update rule UI
+            Object.keys(validations).forEach(rule => {
+                const ruleElement = rules[rule];
+                const isValid = validations[rule];
+                
+                if (isValid) {
+                    ruleElement.classList.add('valid');
+                    ruleElement.querySelector('i').className = 'bi bi-check-circle-fill text-success me-1';
+                } else {
+                    ruleElement.classList.remove('valid');
+                    ruleElement.querySelector('i').className = 'bi bi-x-circle-fill text-danger me-1';
+                }
+            });
+
+            return Object.values(validations).every(Boolean);
+        }
+
+        // Check if passwords match
+        function checkPasswordMatch() {
+            const password = passwordInput.value;
+            const confirm = confirmInput.value;
+            const feedback = document.getElementById('confirm-feedback');
+            
+            if (confirm === '') {
+                feedback.textContent = '';
+                feedback.className = 'form-text';
+                confirmInput.classList.remove('is-valid', 'is-invalid');
+                return false;
+            }
+            
+            if (password === confirm) {
+                feedback.textContent = '✓ Passwords match';
+                feedback.className = 'form-text text-success';
+                confirmInput.classList.add('is-valid');
+                confirmInput.classList.remove('is-invalid');
+                return true;
+            } else {
+                feedback.textContent = '✗ Passwords do not match';
+                feedback.className = 'form-text text-danger';
+                confirmInput.classList.add('is-invalid');
+                confirmInput.classList.remove('is-valid');
+                return false;
+            }
+        }
+
+        // Enable/disable register button
+        function updateRegisterButton() {
+            const passwordValid = validatePasswordRules(passwordInput.value);
+            const passwordsMatch = checkPasswordMatch();
+            const termsAgreed = termsCheckbox.checked;
+            const username = document.getElementById('id_username').value.trim();
+            const email = document.getElementById('id_email').value.trim();
+            
+            const allValid = passwordValid && passwordsMatch && termsAgreed && username && email;
+            registerBtn.disabled = !allValid;
+        }
+
+        // Event listeners
+        passwordInput.addEventListener('input', function() {
+            updatePasswordStrength(this.value);
+            validatePasswordRules(this.value);
+            checkPasswordMatch();
+            updateRegisterButton();
+        });
+
+        confirmInput.addEventListener('input', function() {
+            checkPasswordMatch();
+            updateRegisterButton();
+        });
+
+        termsCheckbox.addEventListener('change', updateRegisterButton);
+        document.getElementById('id_username').addEventListener('input', updateRegisterButton);
+        document.getElementById('id_email').addEventListener('input', updateRegisterButton);
+
+        // Form submission handler
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (registerBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            registerBtn.querySelector('.btn-text').textContent = 'Creating Account...';
+            registerBtn.querySelector('#submit-spinner').classList.remove('d-none');
+            registerBtn.disabled = true;
+        });
+
+        // Initial validation
+        updateRegisterButton();
+    });
+</script>
+{% endblock %}

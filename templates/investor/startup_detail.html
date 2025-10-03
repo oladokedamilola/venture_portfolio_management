@@ -1,0 +1,288 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            {% if startup.logo %}
+            <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" 
+                 class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+            {% endif %}
+            <div>
+                <h1 class="h3 mb-1">{{ startup.name }}</h1>
+                <p class="text-muted">{{ startup.industry|title }} • {{ startup.get_stage_display }} Stage</p>
+            </div>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'investor_portfolio' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Portfolio
+            </a>
+            <button class="btn btn-primary">
+                <i class="fas fa-download me-2"></i>Reports
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Investment Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Investment Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 border-end">
+                            <small class="text-muted">Total Invested</small>
+                            <h4 class="text-nest-green">${{ investment.amount|floatformat:0|intcomma }}</h4>
+                        </div>
+                        <div class="col-md-3 border-end">
+                            <small class="text-muted">Current Valuation</small>
+                            <h4 class="text-success">${{ startup.valuation|floatformat:0|intcomma }}</h4>
+                        </div>
+                        <div class="col-md-3 border-end">
+                            <small class="text-muted">Ownership</small>
+                            <h4 class="text-info">{{ investment.equity }}%</h4>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">ROI</small>
+                            <h4 class="{% if investment.roi >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ investment.roi }}%
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Startup Overview -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Company Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <strong>Description:</strong>
+                            <p class="mt-2">{{ startup.description }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Founded:</strong>
+                                    <br>
+                                    <span class="text-muted">{{ startup.founding_date|date:"F Y" }}</span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Team Size:</strong>
+                                    <br>
+                                    <span class="text-muted">{{ startup.team_size }} people</span>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <strong>Location:</strong>
+                                    <br>
+                                    <span class="text-muted">{{ startup.location }}</span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Website:</strong>
+                                    <br>
+                                    {% if startup.website %}
+                                    <a href="{{ startup.website }}" target="_blank" class="text-nest-green">Visit Website</a>
+                                    {% else %}
+                                    <span class="text-muted">Not provided</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Model -->
+                    <div class="mb-4">
+                        <strong>Business Model:</strong>
+                        <p class="mt-2 text-muted">{{ startup.business_model|default:"Not specified" }}</p>
+                    </div>
+
+                    <!-- Target Market -->
+                    <div class="mb-4">
+                        <strong>Target Market:</strong>
+                        <p class="mt-2 text-muted">{{ startup.target_market|default:"Not specified" }}</p>
+                    </div>
+
+                    <!-- Competitive Advantage -->
+                    <div>
+                        <strong>Competitive Advantage:</strong>
+                        <p class="mt-2 text-muted">{{ startup.competitive_advantage|default:"Not specified" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Key Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-2 mb-3">
+                            <small class="text-muted">Monthly Revenue</small>
+                            <h6 class="mb-0">${{ startup.monthly_revenue|floatformat:0|intcomma }}</h6>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <small class="text-muted">Customers</small>
+                            <h6 class="mb-0">{{ startup.customer_count|default:"N/A" }}</h6>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <small class="text-muted">Growth Rate</small>
+                            <h6 class="mb-0 {% if startup.monthly_growth >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ startup.monthly_growth }}%
+                            </h6>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <small class="text-muted">CAC</small>
+                            <h6 class="mb-0">${{ startup.cac|default:"N/A" }}</h6>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <small class="text-muted">LTV</small>
+                            <h6 class="mb-0">${{ startup.ltv|default:"N/A" }}</h6>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <small class="text-muted">Churn</small>
+                            <h6 class="mb-0 {% if startup.churn_rate <= 5 %}text-success{% elif startup.churn_rate <= 10 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ startup.churn_rate }}%
+                            </h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Updates -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Updates</h5>
+                    <button class="btn btn-sm btn-outline-primary">Request Update</button>
+                </div>
+                <div class="card-body">
+                    {% for update in startup.updates.all %}
+                    <div class="update-item border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ update.title }}</h6>
+                                <p class="text-muted small mb-2">{{ update.content }}</p>
+                                <div class="d-flex gap-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>{{ update.created_at|date:"M d, Y" }}
+                                    </small>
+                                    <span class="badge 
+                                        {% if update.type == 'milestone' %}bg-success
+                                        {% elif update.type == 'funding' %}bg-primary
+                                        {% elif update.type == 'product' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ update.get_type_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No recent updates available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Team Members -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Team</h6>
+                </div>
+                <div class="card-body">
+                    {% for member in startup.team_members.all %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar bg-nest text-white rounded-circle me-3" 
+                             style="width: 40px; height: 40px; line-height: 40px; text-align: center;">
+                            {{ member.first_name|first }}{{ member.last_name|first }}
+                        </div>
+                        <div>
+                            <strong>{{ member.get_full_name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ member.role }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No team information available</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Investment Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Investment Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Investment Date</small>
+                        <p class="mb-0">{{ investment.date|date:"F d, Y" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Funding Round</small>
+                        <p class="mb-0">{{ investment.get_round_display }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Valuation at Investment</small>
+                        <p class="mb-0">${{ investment.valuation|floatformat:0|intcomma }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Investment Status</small>
+                        <br>
+                        <span class="badge 
+                            {% if investment.status == 'active' %}bg-success
+                            {% elif investment.status == 'exited' %}bg-info
+                            {% else %}bg-warning{% endif %}">
+                            {{ investment.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Documents</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% if startup.pitch_deck %}
+                        <a href="{{ startup.pitch_deck.url }}" class="list-group-item list-group-item-action" target="_blank">
+                            <i class="fas fa-file-powerpoint text-danger me-2"></i>
+                            Pitch Deck
+                        </a>
+                        {% endif %}
+                        {% if startup.financials %}
+                        <a href="{{ startup.financials.url }}" class="list-group-item list-group-item-action" target="_blank">
+                            <i class="fas fa-file-excel text-success me-2"></i>
+                            Financial Statements
+                        </a>
+                        {% endif %}
+                        {% if startup.business_plan %}
+                        <a href="{{ startup.business_plan.url }}" class="list-group-item list-group-item-action" target="_blank">
+                            <i class="fas fa-file-alt text-primary me-2"></i>
+                            Business Plan
+                        </a>
+                        {% endif %}
+                        {% if not startup.pitch_deck and not startup.financials and not startup.business_plan %}
+                        <p class="text-muted text-center small">No documents available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

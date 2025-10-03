@@ -1,0 +1,174 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">My Projects</h1>
+            <p class="text-muted">Manage and track your startup projects</p>
+        </div>
+        <a href="{% url 'founder_project_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Project
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Total Projects</h6>
+                        <h3 class="mb-0">{{ projects.count }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-folder text-nest-green fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">In Progress</h6>
+                        <h3 class="mb-0">{{ projects_in_progress.count }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-sync-alt text-warning fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Completed</h6>
+                        <h3 class="mb-0">{{ projects_completed.count }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle text-success fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Behind Schedule</h6>
+                        <h3 class="mb-0">{{ projects_behind.count }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle text-danger fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">All Projects</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Project Name</th>
+                            <th>Startup</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Progress</th>
+                            <th>Team</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td>
+                                <strong>{{ project.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ project.description|truncatewords:10 }}</small>
+                            </td>
+                            <td>{{ project.startup.name }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if project.status == 'completed' %}bg-success
+                                    {% elif project.status == 'in_progress' %}bg-primary
+                                    {% elif project.status == 'on_hold' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ project.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if project.due_date %}
+                                    {{ project.due_date|date:"M d, Y" }}
+                                    {% if project.is_overdue %}
+                                        <br><small class="text-danger">Overdue</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">No due date</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ project.progress }}%;" 
+                                         aria-valuenow="{{ project.progress }}" 
+                                         aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ project.progress }}%</small>
+                            </td>
+                            <td>
+                                <div class="avatar-group">
+                                    {% for member in project.team_members.all|slice:":3" %}
+                                        <span class="avatar avatar-sm bg-primary text-white rounded-circle">
+                                            {{ member.first_name|first }}{{ member.last_name|first }}
+                                        </span>
+                                    {% endfor %}
+                                    {% if project.team_members.count > 3 %}
+                                        <span class="avatar avatar-sm bg-light text-muted rounded-circle">
+                                            +{{ project.team_members.count|add:"-3" }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'founder_project_detail' project.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                                <h5>No projects yet</h5>
+                                <p class="text-muted">Create your first project to get started</p>
+                                <a href="{% url 'founder_project_create' %}" class="btn btn-primary">
+                                    Create Project
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,267 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">My Funding Applications</h1>
+            <p class="text-muted">Track your funding applications and status</p>
+        </div>
+        <a href="{% url 'founder_funding_apply' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Application
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <h3 class="mb-1">{{ applications.count }}</h3>
+                <small class="text-muted">Total Applications</small>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <h3 class="mb-1 text-primary">{{ applications_pending.count }}</h3>
+                <small class="text-muted">Pending Review</small>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <h3 class="mb-1 text-warning">{{ applications_review.count }}</h3>
+                <small class="text-muted">Under Review</small>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <h3 class="mb-1 text-success">{{ applications_approved.count }}</h3>
+                <small class="text-muted">Approved</small>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <h3 class="mb-1 text-info">{{ applications_funded.count }}</h3>
+                <small class="text-muted">Funded</small>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="dashboard-card text-center">
+                <h3 class="mb-1 text-danger">{{ applications_rejected.count }}</h3>
+                <small class="text-muted">Rejected</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Applications Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Funding Applications</h5>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary" onclick="filterApplications('all')">All</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="filterApplications('pending')">Pending</button>
+                <button class="btn btn-sm btn-outline-warning" onclick="filterApplications('review')">Review</button>
+                <button class="btn btn-sm btn-outline-success" onclick="filterApplications('approved')">Approved</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="applicationsTable">
+                    <thead>
+                        <tr>
+                            <th>Startup</th>
+                            <th>Funding Round</th>
+                            <th>Amount</th>
+                            <th>Equity</th>
+                            <th>Status</th>
+                            <th>Applied Date</th>
+                            <th>Last Update</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in applications %}
+                        <tr class="application-row" data-status="{{ application.status }}">
+                            <td>
+                                <strong>{{ application.startup.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ application.startup.industry }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-earth text-white">
+                                    {{ application.get_funding_round_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>${{ application.amount|floatformat:0|intcomma }}</strong>
+                            </td>
+                            <td>
+                                {% if application.equity_offered %}
+                                    <span class="text-muted">{{ application.equity_offered }}%</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if application.status == 'submitted' %}bg-primary
+                                    {% elif application.status == 'under_review' %}bg-warning
+                                    {% elif application.status == 'approved' %}bg-success
+                                    {% elif application.status == 'rejected' %}bg-danger
+                                    {% elif application.status == 'funded' %}bg-info
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ application.get_status_display }}
+                                </span>
+                                {% if application.is_urgent %}
+                                    <span class="badge bg-danger">Urgent</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ application.created_at|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                <small>{{ application.updated_at|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="#" class="btn btn-sm btn-outline-primary" 
+                                       data-bs-toggle="tooltip" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if application.status == 'submitted' %}
+                                    <a href="#" class="btn btn-sm btn-outline-warning"
+                                       data-bs-toggle="tooltip" title="Edit Application">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="#" class="btn btn-sm btn-outline-info"
+                                       data-bs-toggle="tooltip" title="Download Documents">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-file-invoice-dollar fa-3x text-muted mb-3"></i>
+                                <h5>No funding applications yet</h5>
+                                <p class="text-muted">Submit your first funding application to get started</p>
+                                <a href="{% url 'founder_funding_apply' %}" class="btn btn-primary">
+                                    Apply for Funding
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Application Timeline</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for activity in recent_activities %}
+                        <div class="timeline-item mb-3">
+                            <div class="d-flex">
+                                <div class="timeline-marker bg-nest rounded-circle me-3" 
+                                     style="width: 12px; height: 12px; margin-top: 5px;"></div>
+                                <div class="flex-grow-1">
+                                    <strong>{{ activity.title }}</strong>
+                                    <p class="small text-muted mb-1">{{ activity.description }}</p>
+                                    <small class="text-muted">{{ activity.date|date:"M d, Y H:i" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted text-center">No recent activity</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Next Steps</h6>
+                </div>
+                <div class="card-body">
+                    {% for application in applications_pending %}
+                    <div class="mb-3 p-3 border rounded">
+                        <h6 class="mb-1">{{ application.startup.name }}</h6>
+                        <p class="small text-muted mb-2">Waiting for review - {{ application.get_funding_round_display }} round</p>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" style="width: 25%;"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No pending applications</p>
+                    {% endfor %}
+
+                    {% if applications_under_review %}
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">Applications Under Review</h6>
+                        <p class="small mb-0">You have {{ applications_under_review.count }} application(s) currently being reviewed by the investment committee.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterApplications(status) {
+        const rows = document.querySelectorAll('.application-row');
+        
+        rows.forEach(row => {
+            if (status === 'all' || row.dataset.status === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update active filter button
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+</script>
+
+<style>
+.timeline {
+    position: relative;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--color-light-grey);
+}
+
+.timeline-item {
+    position: relative;
+}
+</style>
+{% endblock %}

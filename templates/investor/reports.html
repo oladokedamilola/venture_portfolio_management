@@ -1,0 +1,365 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Investment Reports</h1>
+            <p class="text-muted">Analytics and insights from your portfolio</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="generatePortfolioReport()">
+                <i class="fas fa-file-pdf me-2"></i>Generate Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Report Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-pie fa-2x text-primary mb-3"></i>
+                    <h5>Portfolio Overview</h5>
+                    <p class="text-muted small">Complete portfolio analysis and allocation</p>
+                    <button class="btn btn-outline-primary btn-sm" onclick="showReport('portfolio')">
+                        View Report
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                    <h5>Performance Analysis</h5>
+                    <p class="text-muted small">ROI and performance metrics</p>
+                    <button class="btn btn-outline-success btn-sm" onclick="showReport('performance')">
+                        View Report
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-industry fa-2x text-warning mb-3"></i>
+                    <h5>Sector Analysis</h5>
+                    <p class="text-muted small">Industry and sector performance</p>
+                    <button class="btn btn-outline-warning btn-sm" onclick="showReport('sector')">
+                        View Report
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-2x text-info mb-3"></i>
+                    <h5>Quarterly Review</h5>
+                    <p class="text-muted small">Quarterly performance and trends</p>
+                    <button class="btn btn-outline-info btn-sm" onclick="showReport('quarterly')">
+                        View Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Report Content -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Portfolio Performance -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Portfolio Performance Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <canvas id="performanceTrendChart" height="200"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="roiDistributionChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr class="bg-light">
+                                    <th>Metric</th>
+                                    <th>Current</th>
+                                    <th>Previous Quarter</th>
+                                    <th>YTD</th>
+                                    <th>Change</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Portfolio Value</td>
+                                    <td>${{ current_value|floatformat:0|intcomma }}</td>
+                                    <td>${{ previous_quarter_value|floatformat:0|intcomma }}</td>
+                                    <td>${{ ytd_value|floatformat:0|intcomma }}</td>
+                                    <td class="{% if value_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ value_change }}%
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Overall ROI</td>
+                                    <td>{{ current_roi }}%</td>
+                                    <td>{{ previous_quarter_roi }}%</td>
+                                    <td>{{ ytd_roi }}%</td>
+                                    <td class="{% if roi_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ roi_change }}%
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Active Investments</td>
+                                    <td>{{ active_investments }}</td>
+                                    <td>{{ previous_active_investments }}</td>
+                                    <td>{{ ytd_active_investments }}</td>
+                                    <td class="{% if active_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ active_change }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sector Performance -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Sector Performance Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <canvas id="sectorPerformanceChart" height="250"></canvas>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="sector-metrics">
+                                {% for sector in sector_performance %}
+                                <div class="mb-3 p-3 border rounded">
+                                    <h6 class="mb-1">{{ sector.name }}</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Allocation: {{ sector.allocation }}%</small>
+                                        <small class="{% if sector.roi >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ sector.roi }}% ROI
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Portfolio Snapshot</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Best Performer</small>
+                        <h6 class="mb-0">{{ best_performer.name }}</h6>
+                        <small class="text-success">+{{ best_performer.roi }}% ROI</small>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Worst Performer</small>
+                        <h6 class="mb-0">{{ worst_performer.name }}</h6>
+                        <small class="text-danger">{{ worst_performer.roi }}% ROI</small>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Diversification Score</small>
+                        <h6 class="mb-0">{{ diversification_score }}/100</h6>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" style="width: {{ diversification_score }}%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Risk Assessment</small>
+                        <h6 class="mb-0">{{ risk_level|title }}</h6>
+                        <small class="text-muted">Based on portfolio concentration</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Generation -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Generate Custom Report</h6>
+                </div>
+                <div class="card-body">
+                    <form id="customReportForm">
+                        <div class="mb-3">
+                            <label class="form-label">Report Type</label>
+                            <select class="form-control" name="report_type">
+                                <option value="comprehensive">Comprehensive Portfolio</option>
+                                <option value="performance">Performance Only</option>
+                                <option value="sector">Sector Analysis</option>
+                                <option value="quarterly">Quarterly Review</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date Range</label>
+                            <select class="form-control" name="date_range">
+                                <option value="ytd">Year to Date</option>
+                                <option value="last_quarter">Last Quarter</option>
+                                <option value="last_year">Last Year</option>
+                                <option value="all_time">All Time</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Format</label>
+                            <select class="form-control" name="format">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-download me-2"></i>Generate Report
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Reports -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Recent Reports</h6>
+                </div>
+                <div class="card-body">
+                    {% for report in recent_reports %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <small class="d-block">{{ report.name }}</small>
+                            <small class="text-muted">{{ report.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <a href="{{ report.url }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center small">No recent reports</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showReport(type) {
+    // Implementation for showing specific reports
+    alert(`Showing ${type} report - this would load the specific report view`);
+}
+
+function generatePortfolioReport() {
+    // Implementation for generating portfolio report
+    alert('Portfolio report generation would be implemented here');
+}
+
+document.getElementById('customReportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    alert(`Generating custom report: ${formData.get('report_type')} for ${formData.get('date_range')} in ${formData.get('format')} format`);
+});
+
+// Initialize charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Performance Trend Chart
+    const trendCtx = document.getElementById('performanceTrendChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2'],
+            datasets: [{
+                label: 'Portfolio Value',
+                data: [1200000, 1350000, 1420000, 1550000, 1680000, 1750000],
+                borderColor: 'var(--color-nest-green)',
+                backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + (value / 1000000).toFixed(1) + 'M';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // ROI Distribution Chart
+    const roiCtx = document.getElementById('roiDistributionChart').getContext('2d');
+    new Chart(roiCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['High Performers (>50%)', 'Good (10-50%)', 'Neutral (-10% to 10%)', 'Underperformers (<-10%)'],
+            datasets: [{
+                data: [25, 40, 25, 10],
+                backgroundColor: [
+                    'var(--color-nest-green)',
+                    'var(--color-sky-blue)',
+                    'var(--color-warm-earth)',
+                    'var(--color-medium-grey)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Sector Performance Chart
+    const sectorCtx = document.getElementById('sectorPerformanceChart').getContext('2d');
+    new Chart(sectorCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Technology', 'Healthcare', 'Finance', 'E-commerce', 'Education'],
+            datasets: [{
+                label: 'Average ROI (%)',
+                data: [45, 32, 28, 52, 38],
+                backgroundColor: 'var(--color-nest-green)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

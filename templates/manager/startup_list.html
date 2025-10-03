@@ -1,0 +1,353 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}All Startups - VentureNest{% endblock %}
+
+{% block page_title %}Portfolio Companies{% endblock %}
+{% block page_subtitle %}Manage all startups in your venture portfolio{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+        <i class="bi bi-funnel me-1"></i>Filter
+    </button>
+    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+        <i class="bi bi-download me-1"></i>Export
+    </button>
+    <a href="{% url 'manager:startup_create' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Add Startup
+    </a>
+</div>
+{% endblock %}
+
+{% block user_content %}
+<!-- Filters Bar -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-3">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" id="stageFilter">
+                    <option value="">All Stages</option>
+                    <option value="seed">Seed</option>
+                    <option value="series-a">Series A</option>
+                    <option value="series-b">Series B+</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="on-track">On Track</option>
+                    <option value="needs-review">Needs Review</option>
+                    <option value="at-risk">At Risk</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" placeholder="Search startups...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary btn-sm w-100" id="clearFilters">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Startups Grid -->
+<div class="row" id="startupsGrid">
+    <!-- Startup Card -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card startup-card h-100 border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <img src="/static/images/startup1.png" alt="TechFlow" class="rounded-circle me-3" width="50" height="50">
+                        <div>
+                            <h5 class="card-title mb-0">TechFlow AI</h5>
+                            <small class="text-muted">Enterprise SaaS</small>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'manager:startup_detail' 1 %}">
+                                <i class="bi bi-eye me-2"></i>View Details
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'manager:startup_edit' 1 %}">
+                                <i class="bi bi-pencil me-2"></i>Edit
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#">
+                                <i class="bi bi-archive me-2"></i>Archive
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-primary">Series A</span>
+                    <span class="badge bg-success">On Track</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text text-muted small mb-3">
+                    AI-powered workflow automation for enterprise teams. Raised $8M in Series A funding.
+                </p>
+                
+                <div class="startup-metrics mb-3">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">85%</div>
+                            <small class="text-muted">Progress</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">$8M</div>
+                            <small class="text-muted">Funding</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">12</div>
+                            <small class="text-muted">Team</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress-bar bg-success" style="width: 85%"></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <img src="/static/images/avatar4.png" alt="Founder" class="rounded-circle me-2" width="24" height="24">
+                        <small class="text-muted">Alex Chen</small>
+                    </div>
+                    <small class="text-muted">Updated 2d ago</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- More startup cards would go here -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card startup-card h-100 border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <img src="/static/images/startup2.png" alt="GreenTech" class="rounded-circle me-3" width="50" height="50">
+                        <div>
+                            <h5 class="card-title mb-0">GreenTech Solutions</h5>
+                            <small class="text-muted">Clean Energy</small>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'manager:startup_detail' 2 %}">
+                                <i class="bi bi-eye me-2"></i>View Details
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'manager:startup_edit' 2 %}">
+                                <i class="bi bi-pencil me-2"></i>Edit
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#">
+                                <i class="bi bi-archive me-2"></i>Archive
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-warning">Seed</span>
+                    <span class="badge bg-warning">Needs Review</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text text-muted small mb-3">
+                    Renewable energy solutions for residential and commercial buildings. Currently in MVP development.
+                </p>
+                
+                <div class="startup-metrics mb-3">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">45%</div>
+                            <small class="text-muted">Progress</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">$1.5M</div>
+                            <small class="text-muted">Funding</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">8</div>
+                            <small class="text-muted">Team</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress-bar bg-warning" style="width: 45%"></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <img src="/static/images/avatar5.png" alt="Founder" class="rounded-circle me-2" width="24" height="24">
+                        <small class="text-muted">Maria Rodriguez</small>
+                    </div>
+                    <small class="text-muted">Updated 1w ago</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<nav aria-label="Startups pagination">
+    <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+            <a class="page-link" href="#">Previous</a>
+        </li>
+        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+            <a class="page-link" href="#">Next</a>
+        </li>
+    </ul>
+</nav>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filter Startups</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="advancedFilters">
+                    <div class="mb-3">
+                        <label class="form-label">Stage</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="stage-seed">
+                            <label class="form-check-label" for="stage-seed">Seed</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="stage-series-a">
+                            <label class="form-check-label" for="stage-series-a">Series A</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="stage-series-b">
+                            <label class="form-check-label" for="stage-series-b">Series B+</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="status-on-track">
+                            <label class="form-check-label" for="status-on-track">On Track</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="status-needs-review">
+                            <label class="form-check-label" for="status-needs-review">Needs Review</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="status-at-risk">
+                            <label class="form-check-label" for="status-at-risk">At Risk</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Industry</label>
+                        <select class="form-select" multiple>
+                            <option>Technology</option>
+                            <option>Healthcare</option>
+                            <option>Clean Energy</option>
+                            <option>Fintech</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .startup-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .startup-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .metric-value {
+        font-size: 1.1rem;
+        color: var(--color-nest-green);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+</style>
+
+<script>
+    // Startup list functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter functionality
+        const stageFilter = document.getElementById('stageFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const clearFilters = document.getElementById('clearFilters');
+
+        function applyFilters() {
+            const stage = stageFilter.value;
+            const status = statusFilter.value;
+            
+            // In a real app, this would filter the startups
+            console.log('Applying filters:', { stage, status });
+        }
+
+        stageFilter.addEventListener('change', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+
+        clearFilters.addEventListener('click', function() {
+            stageFilter.value = '';
+            statusFilter.value = '';
+            applyFilters();
+        });
+
+        // Search functionality
+        const searchInput = document.querySelector('input[placeholder="Search startups..."]');
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const startupCards = document.querySelectorAll('.startup-card');
+            
+            startupCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+
+        // Card click handlers
+        document.querySelectorAll('.startup-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    window.location.href = "{% url 'manager:startup_detail' 1 %}";
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

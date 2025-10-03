@@ -1,0 +1,324 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Investor Dashboard</h1>
+            <p class="text-muted">Welcome back, {{ user.first_name }}! Your portfolio overview.</p>
+        </div>
+        <a href="{% url 'investor_portfolio' %}" class="btn btn-primary">
+            <i class="fas fa-chart-pie me-2"></i>View Full Portfolio
+        </a>
+    </div>
+
+    <!-- Portfolio Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Total Investments</h6>
+                        <h3 class="mb-0">${{ total_invested|floatformat:0|intcomma }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-hand-holding-usd text-nest-green fa-2x"></i>
+                    </div>
+                </div>
+                <small class="text-muted">{{ active_investments }} active</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Current Value</h6>
+                        <h3 class="mb-0">${{ portfolio_value|floatformat:0|intcomma }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-line text-success fa-2x"></i>
+                    </div>
+                </div>
+                <small class="{% if portfolio_growth >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ portfolio_growth }}% growth
+                </small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Portfolio Startups</h6>
+                        <h3 class="mb-0">{{ portfolio_startups }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-rocket text-warning fa-2x"></i>
+                    </div>
+                </div>
+                <small class="text-muted">{{ new_startups_this_quarter }} new this quarter</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Avg. ROI</h6>
+                        <h3 class="mb-0 {% if avg_roi >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ avg_roi }}%
+                        </h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-percentage text-info fa-2x"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Weighted average</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Investments -->
+        <div class="col-lg-7 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Investments</h5>
+                    <a href="{% url 'investor_funding_history' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Startup</th>
+                                    <th>Round</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>ROI</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for investment in recent_investments %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ investment.startup.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ investment.startup.industry }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-earth text-white">
+                                            {{ investment.get_round_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>${{ investment.amount|floatformat:0|intcomma }}</strong>
+                                    </td>
+                                    <td>
+                                        <small>{{ investment.investment_date|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if investment.status == 'active' %}bg-success
+                                            {% elif investment.status == 'exited' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ investment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="{% if investment.current_roi >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ investment.current_roi }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <i class="fas fa-chart-line fa-2x text-muted mb-3"></i>
+                                        <p class="text-muted">No investments yet</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Allocation -->
+        <div class="col-lg-5 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Portfolio Allocation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <canvas id="allocationChart" height="200"></canvas>
+                    </div>
+                    <div class="allocation-list">
+                        {% for allocation in portfolio_allocation %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="color-dot me-2" 
+                                      style="background-color: {{ allocation.color }};"></span>
+                                <span>{{ allocation.industry }}</span>
+                            </div>
+                            <div class="text-end">
+                                <strong>${{ allocation.amount|floatformat:0|intcomma }}</strong>
+                                <br>
+                                <small class="text-muted">{{ allocation.percentage }}%</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Performance Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Performers</h5>
+                </div>
+                <div class="card-body">
+                    {% for performer in top_performers %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                        <div>
+                            <h6 class="mb-1">{{ performer.startup.name }}</h6>
+                            <small class="text-muted">{{ performer.startup.industry }}</small>
+                        </div>
+                        <div class="text-end">
+                            <strong class="text-success">+{{ performer.roi }}% ROI</strong>
+                            <br>
+                            <small class="text-muted">${{ performer.current_value|floatformat:0|intcomma }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No performance data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Updates -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Portfolio Updates</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for update in recent_updates %}
+                <div class="col-md-6 mb-3">
+                    <div class="border-start border-nest-green border-4 ps-3">
+                        <h6 class="mb-1">{{ update.startup.name }}</h6>
+                        <p class="text-muted small mb-1">{{ update.title }}</p>
+                        <small class="text-muted">{{ update.created_at|timesince }} ago • </small>
+                        <span class="badge 
+                            {% if update.type == 'milestone' %}bg-success
+                            {% elif update.type == 'funding' %}bg-primary
+                            {% elif update.type == 'product' %}bg-info
+                            {% else %}bg-secondary{% endif %}">
+                            {{ update.get_type_display }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-3">
+                    <p class="text-muted">No recent updates from portfolio companies</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Portfolio Allocation Chart
+    const allocationCtx = document.getElementById('allocationChart').getContext('2d');
+    new Chart(allocationCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for alloc in portfolio_allocation %}'{{ alloc.industry }}',{% endfor %}],
+            datasets: [{
+                data: [{% for alloc in portfolio_allocation %}{{ alloc.percentage }},{% endfor %}],
+                backgroundColor: [{% for alloc in portfolio_allocation %}'{{ alloc.color }}',{% endfor %}],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12
+                    }
+                }
+            }
+        }
+    });
+
+    // Performance Trends Chart
+    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(performanceCtx, {
+        type: 'line',
+        data: {
+            labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2'],
+            datasets: [{
+                label: 'Portfolio Value',
+                data: [1200000, 1350000, 1420000, 1550000, 1680000, 1750000],
+                borderColor: 'var(--color-nest-green)',
+                backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + (value / 1000000).toFixed(1) + 'M';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+</style>
+{% endblock %}

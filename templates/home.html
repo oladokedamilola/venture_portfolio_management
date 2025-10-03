@@ -1,0 +1,426 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}VentureNest - Venture Portfolio Management Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-80">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <span class="badge bg-warning text-dark mb-3 px-3 py-2 rounded-pill">
+                        <i class="bi bi-star-fill me-1"></i>Trusted by Venture Studios Worldwide
+                    </span>
+                    <h1 class="display-4 fw-bold mb-4 text-nest">
+                        Streamline Your <span class="text-accent">Venture Portfolio</span>
+                    </h1>
+                    <p class="lead mb-4 text-muted">
+                        Centralized platform for managing startups, tracking progress, and optimizing funding across your entire portfolio. From seed to scale, we've got you covered.
+                    </p>
+                    <div class="hero-actions d-flex flex-wrap gap-3">
+                        {% if not user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4 py-3">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Start Free Trial
+                        </a>
+                        <a href="#features" class="btn btn-outline-primary btn-lg px-4 py-3">
+                            <i class="bi bi-play-circle me-2"></i>Watch Demo
+                        </a>
+                        {% else %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-4 py-3">
+                            <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="hero-stats mt-4 d-flex gap-4">
+                        <div class="stat-item">
+                            <h4 class="fw-bold text-nest mb-1">50+</h4>
+                            <small class="text-muted">Portfolio Companies</small>
+                        </div>
+                        <div class="stat-item">
+                            <h4 class="fw-bold text-nest mb-1">$2B+</h4>
+                            <small class="text-muted">Capital Deployed</small>
+                        </div>
+                        <div class="stat-item">
+                            <h4 class="fw-bold text-nest mb-1">95%</h4>
+                            <small class="text-muted">Satisfaction Rate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-visual mt-5 mt-lg-0">
+                    <div class="dashboard-preview position-relative">
+                        <div class="card dashboard-card border-0 shadow-lg">
+                            <div class="card-header bg-nest text-white rounded-top">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">Portfolio Overview</span>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-warning">Live</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="p-4">
+                                    <div class="row text-center mb-4">
+                                        <div class="col-4">
+                                            <div class="metric-card">
+                                                <h3 class="text-nest fw-bold">12</h3>
+                                                <small class="text-muted">Active Startups</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="metric-card">
+                                                <h3 class="text-success fw-bold">$45M</h3>
+                                                <small class="text-muted">Total Funding</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="metric-card">
+                                                <h3 class="text-warning fw-bold">84%</h3>
+                                                <small class="text-muted">On Track</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="progress-bars">
+                                        <div class="progress-item mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="small">Seed Stage</span>
+                                                <span class="small text-muted">6 companies</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" style="width: 50%"></div>
+                                            </div>
+                                        </div>
+                                        <div class="progress-item mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="small">Series A</span>
+                                                <span class="small text-muted">4 companies</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-primary" style="width: 33%"></div>
+                                            </div>
+                                        </div>
+                                        <div class="progress-item mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="small">Series B+</span>
+                                                <span class="small text-muted">2 companies</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-warning" style="width: 17%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Floating elements for visual interest -->
+                        <div class="position-absolute top-0 start-0 mt-4 ms-4" style="z-index: -1;">
+                            <div class="bg-accent rounded-circle" style="width: 80px; height: 80px; opacity: 0.1;"></div>
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 mb-4 me-4" style="z-index: -1;">
+                            <div class="bg-primary rounded-circle" style="width: 120px; height: 120px; opacity: 0.05;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary mb-3 px-3 py-2 rounded-pill">Features</span>
+            <h2 class="display-5 fw-bold mb-3">Everything You Need to Manage Your Portfolio</h2>
+            <p class="lead text-muted">Designed specifically for venture studios and their ecosystem partners</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-building display-4 text-nest"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Startup Management</h4>
+                        <p class="text-muted mb-3">Track all portfolio companies, their progress, milestones, and key metrics in one centralized location.</p>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Company profiles & cap tables</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Progress tracking & milestones</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Team & stakeholder management</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-kanban display-4 text-nest"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Project Tracking</h4>
+                        <p class="text-muted mb-3">Manage projects, milestones, and tasks across multiple startups with role-based access and real-time updates.</p>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Kanban boards & timelines</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Task assignment & progress</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>File sharing & collaboration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-graph-up display-4 text-nest"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Funding Management</h4>
+                        <p class="text-muted mb-3">Track funding rounds, valuations, investor communications, and cap table management throughout the lifecycle.</p>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Round tracking & documents</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Investor relationship management</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Valuation & equity tracking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-bar-chart display-4 text-nest"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Analytics & Reporting</h4>
+                        <p class="text-muted mb-3">Generate comprehensive reports and dashboards for investors, managers, and stakeholders with real-time data.</p>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Portfolio performance metrics</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Custom report builder</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Investor update automation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-people display-4 text-nest"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Team Collaboration</h4>
+                        <p class="text-muted mb-3">Enable seamless collaboration between venture managers, founders, team members, and investors.</p>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Role-based permissions</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Real-time notifications</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Comment threads & mentions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-shield-check display-4 text-nest"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Security & Compliance</h4>
+                        <p class="text-muted mb-3">Enterprise-grade security with compliance features designed for the venture capital and startup ecosystem.</p>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>SOC 2 compliant</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Data encryption</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Audit trails</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Role Benefits Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-warning text-dark mb-3 px-3 py-2 rounded-pill">For Your Team</span>
+            <h2 class="display-5 fw-bold mb-3">Built for Your Entire Ecosystem</h2>
+            <p class="lead text-muted">Different roles, one unified platform</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="role-card text-center p-4">
+                    <div class="role-icon mb-3">
+                        <i class="bi bi-gem display-4 text-nest"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Venture Managers</h5>
+                    <p class="text-muted mb-3">Oversee portfolio performance, track KPIs, and make data-driven investment decisions.</p>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Portfolio dashboards</li>
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Performance analytics</li>
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Reporting tools</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="role-card text-center p-4">
+                    <div class="role-icon mb-3">
+                        <i class="bi bi-lightbulb display-4 text-nest"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Founders</h5>
+                    <p class="text-muted mb-3">Focus on building your startup while keeping investors and stakeholders automatically updated.</p>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Progress tracking</li>
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Investor updates</li>
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Task management</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="role-card text-center p-4">
+                    <div class="role-icon mb-3">
+                        <i class="bi bi-person-badge display-4 text-nest"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Team Members</h5>
+                    <p class="text-muted mb-3">Execute tasks efficiently with clear priorities and seamless collaboration across the portfolio.</p>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Task assignments</li>
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Progress tracking</li>
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Team collaboration</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="role-card text-center p-4">
+                    <div class="role-icon mb-3">
+                        <i class="bi bi-graph-up-arrow display-4 text-nest"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Investors</h5>
+                    <p class="text-muted mb-3">Access portfolio insights, performance data, and automated reporting without manual updates.</p>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Portfolio overview</li>
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Performance metrics</li>
+                        <li class="mb-1"><i class="bi bi-check me-1"></i>Document access</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-nest text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h3 class="fw-bold mb-3">Ready to Transform Your Venture Portfolio Management?</h3>
+                <p class="mb-0">Join leading venture studios and start managing your portfolio more effectively today.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                {% if not user.is_authenticated %}
+                <a href="{% url 'register' %}" class="btn btn-accent btn-lg px-4">
+                    <i class="bi bi-rocket-takeoff me-2"></i>Start Free Trial
+                </a>
+                {% else %}
+                <a href="{% url 'dashboard' %}" class="btn btn-accent btn-lg px-4">
+                    <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Custom styles for home page */
+    .min-vh-80 {
+        min-height: 80vh;
+    }
+    
+    .text-nest {
+        color: var(--color-nest-green);
+    }
+    
+    .text-accent {
+        color: var(--color-golden-glow);
+    }
+    
+    .hero-section {
+        background: linear-gradient(135deg, var(--color-light-beige) 0%, #ffffff 50%, var(--color-light-beige) 100%);
+    }
+    
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
+    
+    .feature-card, .role-card {
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover, .role-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .dashboard-preview {
+        transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+        transition: transform 0.5s ease;
+    }
+    
+    .dashboard-preview:hover {
+        transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+    }
+    
+    .metric-card {
+        padding: 1rem 0;
+    }
+    
+    .progress {
+        background-color: #f1f3f4;
+    }
+    
+    .bg-accent {
+        background-color: var(--color-golden-glow) !important;
+    }
+</style>
+
+<script>
+    // Add some interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate progress bars on scroll
+        const observerOptions = {
+            threshold: 0.5
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe feature cards for animation
+        document.querySelectorAll('.feature-card, .role-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Edit Startup</h1>
+            <p class="text-muted">Update your startup information</p>
+        </div>
+        <a href="{% url 'founder_startup_detail' startup.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Startup
+        </a>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Startup Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Startup Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ startup.name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="industry" class="form-label">Industry *</label>
+                                <select class="form-control" id="industry" name="industry" required>
+                                    <option value="">Select Industry</option>
+                                    <option value="tech" {% if startup.industry == 'tech' %}selected{% endif %}>Technology</option>
+                                    <option value="healthcare" {% if startup.industry == 'healthcare' %}selected{% endif %}>Healthcare</option>
+                                    <option value="finance" {% if startup.industry == 'finance' %}selected{% endif %}>Finance</option>
+                                    <option value="education" {% if startup.industry == 'education' %}selected{% endif %}>Education</option>
+                                    <option value="ecommerce" {% if startup.industry == 'ecommerce' %}selected{% endif %}>E-commerce</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="4" required>{{ startup.description }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="founding_date" class="form-label">Founding Date</label>
+                                <input type="date" class="form-control" id="founding_date" 
+                                       name="founding_date" value="{{ startup.founding_date|date:'Y-m-d' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="website" class="form-label">Website</label>
+                                <input type="url" class="form-control" id="website" name="website" 
+                                       value="{{ startup.website }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="team_size" class="form-label">Team Size</label>
+                                <input type="number" class="form-control" id="team_size" name="team_size" 
+                                       value="{{ startup.team_size }}" min="1">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="logo" class="form-label">Logo</label>
+                            <input type="file" class="form-control" id="logo" name="logo" 
+                                   accept="image/*">
+                            {% if startup.logo %}
+                                <div class="mt-2">
+                                    <small>Current logo:</small>
+                                    <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" 
+                                         class="img-thumbnail mt-1" style="max-height: 60px;">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="pitch_deck" class="form-label">Pitch Deck</label>
+                            <input type="file" class="form-control" id="pitch_deck" name="pitch_deck" 
+                                   accept=".pdf,.ppt,.pptx">
+                            {% if startup.pitch_deck %}
+                                <div class="mt-2">
+                                    <small>Current file: {{ startup.pitch_deck.name }}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Startup
+                            </button>
+                            <a href="{% url 'founder_startup_detail' startup.id %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Help -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-warm-earth text-white">
+                    <h6 class="card-title mb-0">Tips for Success</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Clear Description</h6>
+                        <p class="small text-muted">Describe what problem you solve and how your solution works.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Professional Logo</h6>
+                        <p class="small text-muted">Use a high-quality logo that represents your brand.</p>
+                    </div>
+                    <div>
+                        <h6 class="text-nest-green">Updated Pitch Deck</h6>
+                        <p class="small text-muted">Keep your pitch deck current with latest metrics and milestones.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

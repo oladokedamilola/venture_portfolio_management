@@ -1,0 +1,245 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">My Tasks</h1>
+            <p class="text-muted">Manage and track your assigned tasks</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary" onclick="filterTasks('all')">All</button>
+            <button class="btn btn-outline-primary" onclick="filterTasks('in_progress')">In Progress</button>
+            <button class="btn btn-outline-warning" onclick="filterTasks('review')">Review</button>
+            <button class="btn btn-outline-success" onclick="filterTasks('completed')">Completed</button>
+        </div>
+    </div>
+
+    <!-- Task Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Project</label>
+                    <select class="form-control" onchange="filterByProject(this.value)">
+                        <option value="">All Projects</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Priority</label>
+                    <select class="form-control" onchange="filterByPriority(this.value)">
+                        <option value="">All Priorities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Due Date</label>
+                    <select class="form-control" onchange="filterByDueDate(this.value)">
+                        <option value="">Any Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Sort By</label>
+                    <select class="form-control" onchange="sortTasks(this.value)">
+                        <option value="due_date">Due Date</option>
+                        <option value="priority">Priority</option>
+                        <option value="project">Project</option>
+                        <option value="status">Status</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks List -->
+    <div class="row" id="tasksContainer">
+        {% for task in tasks %}
+        <div class="col-lg-6 mb-4 task-card" 
+             data-status="{{ task.status }}" 
+             data-project="{{ task.project.id }}"
+             data-priority="{{ task.priority }}"
+             data-due-date="{{ task.due_date|date:'Y-m-d' }}">
+            <div class="card h-100 {% if task.priority == 'high' %}border-danger{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">{{ task.title }}</h6>
+                    {% if task.priority == 'high' %}
+                    <span class="badge bg-danger">High Priority</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">{{ task.description }}</p>
+                    
+                    <div class="mb-3">
+                        <strong>Project:</strong> 
+                        <span class="text-nest-green">{{ task.project.name }}</span>
+                        <br>
+                        <small class="text-muted">{{ task.project.startup.name }}</small>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Status</small>
+                            <br>
+                            <span class="badge 
+                                {% if task.status == 'completed' %}bg-success
+                                {% elif task.status == 'in_progress' %}bg-primary
+                                {% elif task.status == 'review' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ task.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Due Date</small>
+                            <br>
+                            {% if task.due_date %}
+                                <span class="{% if task.is_overdue %}text-danger{% else %}text-muted{% endif %}">
+                                    {{ task.due_date|date:"M d, Y" }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">No due date</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if task.estimated_hours %}
+                    <div class="mb-3">
+                        <small class="text-muted">Estimated Effort:</small>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" style="width: {% widthratio task.hours_spent task.estimated_hours 100 %}%;"></div>
+                        </div>
+                        <small class="text-muted">{{ task.hours_spent|default:0 }}/{{ task.estimated_hours }} hours</small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            Created: {{ task.created_at|date:"M d" }}
+                        </small>
+                        <div class="btn-group">
+                            <a href="{% url 'team_task_detail' task.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'team_task_update' task.id %}" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                <h5>No tasks assigned</h5>
+                <p class="text-muted">You don't have any tasks assigned to you yet.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if tasks.has_other_pages %}
+    <nav aria-label="Task pagination">
+        <ul class="pagination justify-content-center">
+            {% if tasks.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ tasks.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for num in tasks.paginator.page_range %}
+            <li class="page-item {% if tasks.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if tasks.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ tasks.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script>
+function filterTasks(status) {
+    const cards = document.querySelectorAll('.task-card');
+    cards.forEach(card => {
+        if (status === 'all' || card.dataset.status === status) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterByProject(projectId) {
+    const cards = document.querySelectorAll('.task-card');
+    cards.forEach(card => {
+        if (!projectId || card.dataset.project === projectId) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterByPriority(priority) {
+    const cards = document.querySelectorAll('.task-card');
+    cards.forEach(card => {
+        if (!priority || card.dataset.priority === priority) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterByDueDate(filterType) {
+    const cards = document.querySelectorAll('.task-card');
+    const today = new Date().toISOString().split('T')[0];
+    
+    cards.forEach(card => {
+        const dueDate = card.dataset.dueDate;
+        if (!dueDate) {
+            card.style.display = filterType === '' ? 'block' : 'none';
+            return;
+        }
+
+        let show = true;
+        switch(filterType) {
+            case 'today':
+                show = dueDate === today;
+                break;
+            case 'week':
+                const weekFromNow = new Date();
+                weekFromNow.setDate(weekFromNow.getDate() + 7);
+                show = dueDate <= weekFromNow.toISOString().split('T')[0] && dueDate >= today;
+                break;
+            case 'overdue':
+                show = dueDate < today;
+                break;
+            case '':
+                show = true;
+                break;
+        }
+        
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+</script>
+{% endblock %}

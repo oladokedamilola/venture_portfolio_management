@@ -1,0 +1,401 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}My Startups - VentureNest{% endblock %}
+
+{% block page_title %}My Startups{% endblock %}
+{% block page_subtitle %}Manage and monitor all your startup ventures{% endblock %}
+
+{% block page_actions %}
+<a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createStartupModal">
+    <i class="bi bi-plus-circle me-1"></i>Add Startup
+</a>
+{% endblock %}
+
+{% block user_content %}
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-primary mb-1">{{ startups.count }}</h3>
+                <small class="text-muted">Total Startups</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-success mb-1">{{ active_startups.count }}</h3>
+                <small class="text-muted">Active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-warning mb-1">{{ needs_attention_count }}</h3>
+                <small class="text-muted">Needs Attention</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-info mb-1">${{ total_funding_raised }}M</h3>
+                <small class="text-muted">Total Funding</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Startups Grid -->
+<div class="row" id="startupsGrid">
+    {% for startup in startups %}
+    <!-- Startup Card -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card startup-card h-100 border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ startup.logo.url|default:'/static/images/default-startup.png' }}" 
+                             alt="{{ startup.name }}" 
+                             class="rounded-circle me-3" 
+                             width="50" 
+                             height="50">
+                        <div>
+                            <h5 class="card-title mb-0">{{ startup.name }}</h5>
+                            <small class="text-muted">{{ startup.get_industry_display }}</small>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'founder:startup_detail' startup.id %}">
+                                <i class="bi bi-eye me-2"></i>View Details
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'founder:startup_edit' startup.id %}">
+                                <i class="bi bi-pencil me-2"></i>Edit
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'founder:projects' %}?startup={{ startup.id }}">
+                                <i class="bi bi-kanban me-2"></i>Projects
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#archiveStartupModal" data-startup-id="{{ startup.id }}">
+                                <i class="bi bi-archive me-2"></i>Archive
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-primary">{{ startup.get_stage_display }}</span>
+                    <span class="badge {% if startup.status == 'on_track' %}bg-success{% elif startup.status == 'needs_review' %}bg-warning{% else %}bg-danger{% endif %}">
+                        {{ startup.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text text-muted small mb-3">
+                    {{ startup.description|truncatewords:20 }}
+                </p>
+                
+                <div class="startup-metrics mb-3">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">{{ startup.progress_percentage }}%</div>
+                            <small class="text-muted">Progress</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">${{ startup.amount_raised|floatformat:0 }}M</div>
+                            <small class="text-muted">Funding</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-value fw-bold">{{ startup.team_size }}</div>
+                            <small class="text-muted">Team</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress-bar {% if startup.progress_percentage >= 80 %}bg-success{% elif startup.progress_percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                         style="width: {{ startup.progress_percentage }}%"></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        <i class="bi bi-calendar me-1"></i>
+                        Updated {{ startup.updated_at|timesince }} ago
+                    </div>
+                    <a href="{% url 'founder:startup_detail' startup.id %}" class="btn btn-sm btn-outline-primary">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <!-- Empty State -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-building display-4 text-muted"></i>
+                </div>
+                <h5 class="text-muted">No Startups Yet</h5>
+                <p class="text-muted mb-4">You haven't created any startups yet. Start by adding your first venture!</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createStartupModal">
+                    <i class="bi bi-plus-circle me-1"></i>Create Your First Startup
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Create Startup Modal -->
+<div class="modal fade" id="createStartupModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Startup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createStartupForm" method="POST" action="{% url 'founder:startup_create' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Startup Name</label>
+                                <input type="text" name="name" class="form-control" placeholder="Enter startup name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Industry</label>
+                                <select name="industry" class="form-select" required>
+                                    <option value="">Select Industry</option>
+                                    <option value="technology">Technology</option>
+                                    <option value="healthcare">Healthcare</option>
+                                    <option value="clean-energy">Clean Energy</option>
+                                    <option value="fintech">Fintech</option>
+                                    <option value="ecommerce">E-commerce</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Funding Stage</label>
+                                <select name="stage" class="form-select" required>
+                                    <option value="">Select Stage</option>
+                                    <option value="pre-seed">Pre-Seed</option>
+                                    <option value="seed">Seed</option>
+                                    <option value="series-a">Series A</option>
+                                    <option value="series-b">Series B</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Team Size</label>
+                                <input type="number" name="team_size" class="form-control" placeholder="e.g., 5" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Describe your startup's mission and value proposition..." required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Website</label>
+                                <input type="url" name="website" class="form-control" placeholder="https://example.com">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Founded Date</label>
+                                <input type="date" name="founded_date" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="createStartupForm" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>Create Startup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Archive Startup Modal -->
+<div class="modal fade" id="archiveStartupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Archive Startup
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to archive <strong id="archiveStartupName">this startup</strong>?</p>
+                <p class="text-muted small">
+                    Archived startups will be moved to your historical records and won't appear in active lists. You can restore them later if needed.
+                </p>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmArchive">
+                    <label class="form-check-label" for="confirmArchive">
+                        I understand this will archive the startup
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmArchiveBtn" disabled>
+                    <i class="bi bi-archive me-1"></i>Archive Startup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .startup-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .startup-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .metric-value {
+        font-size: 1.1rem;
+        color: var(--color-nest-green);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+
+    .dashboard-card {
+        transition: transform 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Archive startup functionality
+        const archiveModal = document.getElementById('archiveStartupModal');
+        const confirmArchive = document.getElementById('confirmArchive');
+        const confirmArchiveBtn = document.getElementById('confirmArchiveBtn');
+        let currentStartupId = null;
+
+        archiveModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const startupId = button.getAttribute('data-startup-id');
+            const startupName = button.closest('.startup-card').querySelector('.card-title').textContent;
+            
+            currentStartupId = startupId;
+            document.getElementById('archiveStartupName').textContent = startupName;
+        });
+
+        confirmArchive.addEventListener('change', function() {
+            confirmArchiveBtn.disabled = !this.checked;
+        });
+
+        confirmArchiveBtn.addEventListener('click', function() {
+            if (currentStartupId) {
+                // In a real app, this would make an API call to archive the startup
+                console.log('Archiving startup:', currentStartupId);
+                
+                // Remove the startup card from the UI
+                const startupCard = document.querySelector(`[data-startup-id="${currentStartupId}"]`).closest('.startup-card').parentElement;
+                startupCard.remove();
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(archiveModal);
+                modal.hide();
+                
+                // Show success message
+                alert('Startup archived successfully!');
+                
+                // Reset modal state
+                confirmArchive.checked = false;
+                confirmArchiveBtn.disabled = true;
+            }
+        });
+
+        // Form validation for create startup
+        const createStartupForm = document.getElementById('createStartupForm');
+        createStartupForm.addEventListener('submit', function(e) {
+            const name = this.querySelector('input[name="name"]').value.trim();
+            const industry = this.querySelector('select[name="industry"]').value;
+            const stage = this.querySelector('select[name="stage"]').value;
+            const description = this.querySelector('textarea[name="description"]').value.trim();
+
+            if (!name || !industry || !stage || !description) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Creating...';
+            submitBtn.disabled = true;
+        });
+
+        // Card click handlers
+        document.querySelectorAll('.startup-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't trigger if clicking dropdown or buttons
+                if (!e.target.closest('.dropdown') && !e.target.closest('.btn')) {
+                    const detailUrl = this.querySelector('a[href*="startup_detail"]').href;
+                    window.location.href = detailUrl;
+                }
+            });
+        });
+
+        // Quick stats animation
+        const observerOptions = {
+            threshold: 0.5
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Animate startup cards on scroll
+        document.querySelectorAll('.startup-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}

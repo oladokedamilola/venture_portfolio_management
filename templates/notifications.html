@@ -1,0 +1,285 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Notifications - VentureNest{% endblock %}
+
+{% block page_title %}Notifications{% endblock %}
+{% block page_subtitle %}Stay updated with your portfolio activities{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="bi bi-filter me-1"></i>Filter
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="?filter=all">All Notifications</a></li>
+        <li><a class="dropdown-item" href="?filter=unread">Unread Only</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="?filter=system">System</a></li>
+        <li><a class="dropdown-item" href="?filter=tasks">Tasks</a></li>
+        <li><a class="dropdown-item" href="?filter=funding">Funding</a></li>
+    </ul>
+</div>
+<button class="btn btn-primary btn-sm ms-2" id="mark-all-read">
+    <i class="bi bi-check-all me-1"></i>Mark All as Read
+</button>
+{% endblock %}
+
+{% block user_content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Notifications List -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bell text-nest me-2"></i>Recent Notifications
+                    </h5>
+                    <span class="badge bg-primary">{{ unread_count }} unread</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if notifications %}
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications %}
+                    <div class="list-group-item {% if not notification.read %}bg-light{% endif %} border-0 py-3">
+                        <div class="d-flex align-items-start">
+                            <!-- Notification Icon -->
+                            <div class="flex-shrink-0 me-3">
+                                <div class="notification-icon 
+                                    {% if notification.notification_type == 'task' %}bg-warning
+                                    {% elif notification.notification_type == 'funding' %}bg-success
+                                    {% elif notification.notification_type == 'system' %}bg-primary
+                                    {% else %}bg-secondary{% endif %} 
+                                    rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width: 40px; height: 40px;">
+                                    <i class="bi 
+                                        {% if notification.notification_type == 'task' %}bi-list-check
+                                        {% elif notification.notification_type == 'funding' %}bi-coin
+                                        {% elif notification.notification_type == 'system' %}bi-gear
+                                        {% else %}bi-info-circle{% endif %} 
+                                        text-white">
+                                    </i>
+                                </div>
+                            </div>
+                            
+                            <!-- Notification Content -->
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="mb-0 {% if not notification.read %}fw-bold{% endif %}">
+                                        {{ notification.title }}
+                                    </h6>
+                                    <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                                </div>
+                                <p class="text-muted mb-2">{{ notification.message }}</p>
+                                
+                                <!-- Notification Actions -->
+                                <div class="d-flex gap-2">
+                                    {% if not notification.read %}
+                                    <button class="btn btn-outline-primary btn-sm mark-read" data-id="{{ notification.id }}">
+                                        Mark as Read
+                                    </button>
+                                    {% endif %}
+                                    {% if notification.action_url %}
+                                    <a href="{{ notification.action_url }}" class="btn btn-primary btn-sm">
+                                        View Details
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-bell-slash display-4 text-muted"></i>
+                    </div>
+                    <h5 class="text-muted">No notifications yet</h5>
+                    <p class="text-muted">You're all caught up! New notifications will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if notifications.has_other_pages %}
+            <div class="card-footer bg-white py-3">
+                <nav aria-label="Notifications pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if notifications.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ notifications.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in notifications.paginator.page_range %}
+                        <li class="page-item {% if notifications.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endfor %}
+                        
+                        {% if notifications.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ notifications.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar - Notification Settings -->
+    <div class="col-lg-4">
+        <!-- Notification Preferences -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-sliders text-nest me-2"></i>Notification Settings
+                </h6>
+            </div>
+            <div class="card-body">
+                <form id="notification-settings">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email Notifications</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="email-tasks" checked>
+                            <label class="form-check-label" for="email-tasks">Task updates</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="email-funding" checked>
+                            <label class="form-check-label" for="email-funding">Funding alerts</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="email-system">
+                            <label class="form-check-label" for="email-system">System messages</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Push Notifications</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="push-tasks" checked>
+                            <label class="form-check-label" for="push-tasks">Task reminders</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="push-deadlines" checked>
+                            <label class="form-check-label" for="push-deadlines">Deadline alerts</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-circle me-1"></i>Save Preferences
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notification Stats -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-graph-up text-nest me-2"></i>Notification Stats
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h4 class="text-primary mb-1">{{ unread_count }}</h4>
+                            <small class="text-muted">Unread</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h4 class="text-success mb-1">{{ today_count }}</h4>
+                            <small class="text-muted">Today</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div>
+                            <h4 class="text-info mb-1">{{ total_count }}</h4>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .notification-icon {
+        transition: transform 0.2s ease;
+    }
+
+    .list-group-item:hover .notification-icon {
+        transform: scale(1.1);
+    }
+
+    .form-switch .form-check-input:checked {
+        background-color: var(--color-nest-green);
+        border-color: var(--color-nest-green);
+    }
+</style>
+
+<script>
+    // Mark notification as read
+    document.querySelectorAll('.mark-read').forEach(button => {
+        button.addEventListener('click', function() {
+            const notificationId = this.getAttribute('data-id');
+            const notificationItem = this.closest('.list-group-item');
+            
+            // Make AJAX request to mark as read
+            fetch(`/notifications/${notificationId}/mark-read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notificationItem.classList.remove('bg-light');
+                    notificationItem.querySelector('h6').classList.remove('fw-bold');
+                    this.remove();
+                    
+                    // Update unread count
+                    const unreadBadge = document.querySelector('.badge.bg-primary');
+                    const currentCount = parseInt(unreadBadge.textContent);
+                    unreadBadge.textContent = currentCount - 1;
+                }
+            });
+        });
+    });
+
+    // Mark all as read
+    document.getElementById('mark-all-read').addEventListener('click', function() {
+        if (confirm('Mark all notifications as read?')) {
+            fetch('/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+    });
+
+    // Save notification preferences
+    document.getElementById('notification-settings').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Save preferences logic here
+        alert('Notification preferences saved!');
+    });
+</script>
+{% endblock %}

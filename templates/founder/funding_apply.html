@@ -1,0 +1,258 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Apply for Funding</h1>
+            <p class="text-muted">Submit your startup for funding consideration</p>
+        </div>
+        <a href="{% url 'founder_funding_rounds' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>My Applications
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Funding Application</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Startup Selection -->
+                        <div class="mb-4">
+                            <label for="startup" class="form-label">Select Startup *</label>
+                            <select class="form-control" id="startup" name="startup" required 
+                                    onchange="updateStartupDetails()">
+                                <option value="">Choose your startup</option>
+                                {% for startup in user_startups %}
+                                    <option value="{{ startup.id }}" 
+                                            data-description="{{ startup.description }}"
+                                            data-industry="{{ startup.industry }}"
+                                            data-team-size="{{ startup.team_size }}"
+                                            data-revenue="{{ startup.monthly_revenue }}">
+                                        {{ startup.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Startup Details Preview -->
+                        <div id="startupDetails" class="card bg-light mb-4" style="display: none;">
+                            <div class="card-body">
+                                <h6>Startup Details</h6>
+                                <div id="startupPreview" class="row small">
+                                    <div class="col-md-6">
+                                        <strong>Industry:</strong> <span id="previewIndustry"></span><br>
+                                        <strong>Team Size:</strong> <span id="previewTeamSize"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Monthly Revenue:</strong> $<span id="previewRevenue"></span><br>
+                                        <strong>Description:</strong> <span id="previewDescription"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Funding Details -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="funding_round" class="form-label">Funding Round *</label>
+                                <select class="form-control" id="funding_round" name="funding_round" required>
+                                    <option value="">Select Round</option>
+                                    <option value="pre_seed">Pre-Seed</option>
+                                    <option value="seed">Seed</option>
+                                    <option value="series_a">Series A</option>
+                                    <option value="series_b">Series B</option>
+                                    <option value="series_c">Series C+</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="amount" class="form-label">Funding Amount Requested ($) *</label>
+                                <input type="number" class="form-control" id="amount" name="amount" 
+                                       placeholder="e.g., 500000" min="1000" step="1000" required>
+                            </div>
+                        </div>
+
+                        <!-- Equity Offering -->
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="equity_offered" class="form-label">Equity Offered (%)</label>
+                                <input type="number" class="form-control" id="equity_offered" name="equity_offered" 
+                                       placeholder="e.g., 10" min="0" max="100" step="0.1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="valuation" class="form-label">Valuation ($)</label>
+                                <input type="number" class="form-control" id="valuation" name="valuation" 
+                                       placeholder="e.g., 5000000" min="0" step="1000">
+                            </div>
+                        </div>
+
+                        <!-- Application Details -->
+                        <div class="mb-3">
+                            <label for="pitch" class="form-label">Investment Pitch *</label>
+                            <textarea class="form-control" id="pitch" name="pitch" rows="6" 
+                                      placeholder="Describe why your startup is a good investment opportunity. Include your unique value proposition, market opportunity, traction, and growth strategy..." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="use_of_funds" class="form-label">Use of Funds *</label>
+                            <textarea class="form-control" id="use_of_funds" name="use_of_funds" rows="4" 
+                                      placeholder="How will you use the funding? Break down allocation for product development, marketing, hiring, operations, etc." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="milestones" class="form-label">Key Milestones *</label>
+                            <textarea class="form-control" id="milestones" name="milestones" rows="4" 
+                                      placeholder="What key milestones will you achieve with this funding? Include timeline and metrics..." required></textarea>
+                        </div>
+
+                        <!-- Documents -->
+                        <div class="mb-4">
+                            <label class="form-label">Supporting Documents</label>
+                            
+                            <div class="mb-3">
+                                <label for="pitch_deck" class="form-label">Pitch Deck *</label>
+                                <input type="file" class="form-control" id="pitch_deck" name="pitch_deck" 
+                                       accept=".pdf,.ppt,.pptx" required>
+                                <small class="text-muted">Upload your latest pitch deck (PDF or PowerPoint)</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="financials" class="form-label">Financial Projections</label>
+                                <input type="file" class="form-control" id="financials" name="financials" 
+                                       accept=".pdf,.xlsx,.xls">
+                                <small class="text-muted">3-5 year financial projections (optional but recommended)</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="business_plan" class="form-label">Business Plan</label>
+                                <input type="file" class="form-control" id="business_plan" name="business_plan" 
+                                       accept=".pdf,.doc,.docx">
+                                <small class="text-muted">Detailed business plan (optional)</small>
+                            </div>
+                        </div>
+
+                        <!-- Terms -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I confirm that all information provided is accurate and complete. I understand that this application will be reviewed by the investment committee.
+                            </label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Application
+                            </button>
+                            <a href="{% url 'founder_funding_rounds' %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Help -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-nest text-white">
+                    <h6 class="card-title mb-0">Application Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Strong Pitch</h6>
+                        <p class="small text-muted">Clearly articulate your unique value and market opportunity.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Realistic Valuation</h6>
+                        <p class="small text-muted">Base your valuation on market comparables and traction.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Clear Use of Funds</h6>
+                        <p class="small text-muted">Provide detailed breakdown of how you'll use the investment.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Achievable Milestones</h6>
+                        <p class="small text-muted">Set realistic milestones that demonstrate progress.</p>
+                    </div>
+                    <div>
+                        <h6 class="text-nest-green">Complete Documentation</h6>
+                        <p class="small text-muted">Ensure all supporting documents are current and professional.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Checklist -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Checklist</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check1">
+                        <label class="form-check-label small" for="check1">Updated pitch deck</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check2">
+                        <label class="form-check-label small" for="check2">Financial projections</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check3">
+                        <label class="form-check-label small" for="check3">Market analysis</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="check4">
+                        <label class="form-check-label small" for="check4">Team information</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="check5">
+                        <label class="form-check-label small" for="check5">Competitive analysis</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateStartupDetails() {
+        const startupSelect = document.getElementById('startup');
+        const detailsDiv = document.getElementById('startupDetails');
+        const selectedOption = startupSelect.options[startupSelect.selectedIndex];
+        
+        if (selectedOption.value) {
+            document.getElementById('previewIndustry').textContent = selectedOption.dataset.industry || 'Not specified';
+            document.getElementById('previewTeamSize').textContent = selectedOption.dataset.teamSize || 'Not specified';
+            document.getElementById('previewRevenue').textContent = selectedOption.dataset.revenue ? 
+                parseInt(selectedOption.dataset.revenue).toLocaleString() : 'Not specified';
+            document.getElementById('previewDescription').textContent = selectedOption.dataset.description ? 
+                selectedOption.dataset.description.substring(0, 100) + '...' : 'Not specified';
+            
+            detailsDiv.style.display = 'block';
+        } else {
+            detailsDiv.style.display = 'none';
+        }
+    }
+
+    // Auto-calculate valuation based on amount and equity
+    document.getElementById('amount').addEventListener('input', calculateValuation);
+    document.getElementById('equity_offered').addEventListener('input', calculateValuation);
+
+    function calculateValuation() {
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const equity = parseFloat(document.getElementById('equity_offered').value) || 0;
+        
+        if (amount > 0 && equity > 0) {
+            const valuation = (amount / equity) * 100;
+            document.getElementById('valuation').value = Math.round(valuation);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Create New Project</h1>
+            <p class="text-muted">Set up a new project for your startup</p>
+        </div>
+        <a href="{% url 'founder_projects' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Projects
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Project Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="startup" class="form-label">Startup *</label>
+                                <select class="form-control" id="startup" name="startup" required>
+                                    <option value="">Select Startup</option>
+                                    {% for startup in user_startups %}
+                                        <option value="{{ startup.id }}">{{ startup.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Project Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       placeholder="Enter project name" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="4" placeholder="Describe the project goals and objectives..." required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-control" id="status" name="status">
+                                    <option value="not_started">Not Started</option>
+                                    <option value="in_progress" selected>In Progress</option>
+                                    <option value="on_hold">On Hold</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select class="form-control" id="priority" name="priority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="progress" class="form-label">Initial Progress</label>
+                                <input type="range" class="form-range" id="progress" name="progress" 
+                                       min="0" max="100" value="0">
+                                <div class="d-flex justify-content-between">
+                                    <small>0%</small>
+                                    <small id="progressValue">0%</small>
+                                    <small>100%</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="start_date" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="due_date" class="form-label">Due Date</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="team_members" class="form-label">Team Members</label>
+                            <select class="form-control" id="team_members" name="team_members" multiple>
+                                {% for member in available_members %}
+                                    <option value="{{ member.id }}">{{ member.get_full_name }} - {{ member.role }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple members</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="budget" class="form-label">Budget (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="budget" name="budget" 
+                                       placeholder="0.00" step="0.01" min="0">
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Create Project
+                            </button>
+                            <a href="{% url 'founder_projects' %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Help -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-nest text-white">
+                    <h6 class="card-title mb-0">Project Setup Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Clear Objectives</h6>
+                        <p class="small text-muted">Define specific, measurable goals for your project.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Realistic Timeline</h6>
+                        <p class="small text-muted">Set achievable deadlines considering your team's capacity.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Team Alignment</h6>
+                        <p class="small text-muted">Assign team members with the right skills for each task.</p>
+                    </div>
+                    <div>
+                        <h6 class="text-nest-green">Budget Planning</h6>
+                        <p class="small text-muted">Estimate costs accurately and include contingency funds.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-users me-2"></i>Invite Team Members
+                        </a>
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-alt me-2"></i>Add Project Template
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update progress value display
+    document.getElementById('progress').addEventListener('input', function() {
+        document.getElementById('progressValue').textContent = this.value + '%';
+    });
+</script>
+{% endblock %}

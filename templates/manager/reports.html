@@ -1,0 +1,718 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Reports & Analytics - VentureNest{% endblock %}
+
+{% block page_title %}Portfolio Analytics{% endblock %}
+{% block page_subtitle %}Comprehensive insights and performance metrics for your venture portfolio{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+        <i class="bi bi-plus-circle me-1"></i>Generate Report
+    </button>
+    <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-download me-1"></i>Export
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-pdf me-2"></i>PDF Report</a></li>
+        <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-excel me-2"></i>Excel Data</a></li>
+        <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-text me-2"></i>CSV Export</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block user_content %}
+<!-- Quick Stats Overview -->
+<div class="row mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-primary mb-1">24</h3>
+                <small class="text-muted">Portfolio Companies</small>
+                <div class="mt-1">
+                    <span class="badge bg-success">+3 this quarter</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-success mb-1">$156M</h3>
+                <small class="text-muted">Total Capital Deployed</small>
+                <div class="mt-1">
+                    <span class="badge bg-success">+12% YoY</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-warning mb-1">$45M</h3>
+                <small class="text-muted">Quarterly Revenue</small>
+                <div class="mt-1">
+                    <span class="badge bg-success">+18% growth</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-info mb-1">3.2x</h3>
+                <small class="text-muted">Average Multiple</small>
+                <div class="mt-1">
+                    <span class="badge bg-success">+0.4x</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-nest mb-1">78%</h3>
+                <small class="text-muted">On Track</small>
+                <div class="mt-1">
+                    <span class="badge bg-success">+5% improvement</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-danger mb-1">5</h3>
+                <small class="text-muted">Needs Attention</small>
+                <div class="mt-1">
+                    <span class="badge bg-warning">2 critical</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Analytics Content -->
+    <div class="col-lg-8">
+        <!-- Portfolio Performance Chart -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up text-nest me-2"></i>Portfolio Performance
+                    </h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary active" data-period="1m">1M</button>
+                        <button class="btn btn-outline-secondary" data-period="3m">3M</button>
+                        <button class="btn btn-outline-secondary" data-period="1y">1Y</button>
+                        <button class="btn btn-outline-secondary" data-period="all">All</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 300px;">
+                    <div class="d-flex align-items-center justify-content-center h-100 bg-light rounded-3">
+                        <div class="text-center text-muted">
+                            <i class="bi bi-bar-chart display-4 mb-3"></i>
+                            <p>Portfolio performance chart visualization</p>
+                            <small>Showing valuation growth, revenue trends, and investment multiples</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Distribution -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-pie-chart text-nest me-2"></i>Stage Distribution
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="distribution-chart mb-3">
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded-3 py-4">
+                                <div class="text-center text-muted">
+                                    <i class="bi bi-pie-chart display-4 mb-2"></i>
+                                    <p>Stage distribution chart</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="distribution-stats">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Seed Stage</span>
+                                <span class="fw-semibold">8 companies (33%)</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Series A</span>
+                                <span class="fw-semibold">12 companies (50%)</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Series B+</span>
+                                <span class="fw-semibold">4 companies (17%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-grid-3x3 text-nest me-2"></i>Industry Breakdown
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="industry-chart mb-3">
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded-3 py-4">
+                                <div class="text-center text-muted">
+                                    <i class="bi bi-grid-3x3 display-4 mb-2"></i>
+                                    <p>Industry breakdown chart</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="industry-stats">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Technology</span>
+                                <span class="fw-semibold">10 companies (42%)</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Healthcare</span>
+                                <span class="fw-semibold">6 companies (25%)</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Clean Energy</span>
+                                <span class="fw-semibold">4 companies (17%)</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Other</span>
+                                <span class="fw-semibold">4 companies (16%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics Table -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-speedometer text-nest me-2"></i>Portfolio Performance Metrics
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Startup</th>
+                                <th>Stage</th>
+                                <th>Revenue Growth</th>
+                                <th>Valuation Change</th>
+                                <th>Burn Rate</th>
+                                <th>Team Growth</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="/static/images/startup1.png" alt="TechFlow" class="rounded-circle me-2" width="32" height="32">
+                                        <div class="fw-semibold">TechFlow AI</div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-primary">Series A</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold text-success">+45%</span>
+                                        <i class="bi bi-arrow-up-right text-success ms-1"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold text-success">+2.1x</span>
+                                        <i class="bi bi-arrow-up-right text-success ms-1"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">$85K/mo</div>
+                                    <small class="text-muted">18 months runway</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold">+8</span>
+                                        <i class="bi bi-arrow-up-right text-success ms-1"></i>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-success">Exceeding</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="/static/images/startup2.png" alt="GreenTech" class="rounded-circle me-2" width="32" height="32">
+                                        <div class="fw-semibold">GreenTech Solutions</div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-warning">Seed</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold text-warning">+12%</span>
+                                        <i class="bi bi-arrow-up-right text-warning ms-1"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold text-warning">+1.2x</span>
+                                        <i class="bi bi-arrow-up-right text-warning ms-1"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">$45K/mo</div>
+                                    <small class="text-muted">9 months runway</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold">+3</span>
+                                        <i class="bi bi-arrow-up-right text-success ms-1"></i>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-warning">On Track</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="/static/images/startup3.png" alt="HealthTech" class="rounded-circle me-2" width="32" height="32">
+                                        <div class="fw-semibold">HealthTech Labs</div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-info">Series B</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold text-danger">-5%</span>
+                                        <i class="bi bi-arrow-down-right text-danger ms-1"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold text-danger">-0.3x</span>
+                                        <i class="bi bi-arrow-down-right text-danger ms-1"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">$120K/mo</div>
+                                    <small class="text-muted">6 months runway</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold">-2</span>
+                                        <i class="bi bi-arrow-down-right text-danger ms-1"></i>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-danger">At Risk</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Report Templates -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-file-earmark-text text-nest me-2"></i>Report Templates
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary text-start" data-report="portfolio-overview">
+                        <i class="bi bi-building me-2"></i>Portfolio Overview
+                    </button>
+                    <button class="btn btn-outline-primary text-start" data-report="performance-review">
+                        <i class="bi bi-graph-up me-2"></i>Performance Review
+                    </button>
+                    <button class="btn btn-outline-primary text-start" data-report="investor-update">
+                        <i class="bi bi-people me-2"></i>Investor Update
+                    </button>
+                    <button class="btn btn-outline-primary text-start" data-report="financial-analysis">
+                        <i class="bi bi-currency-dollar me-2"></i>Financial Analysis
+                    </button>
+                    <button class="btn btn-outline-primary text-start" data-report="risk-assessment">
+                        <i class="bi bi-shield-exclamation me-2"></i>Risk Assessment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up-arrow text-nest me-2"></i>Key Performance Indicators
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="kpi-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Portfolio IRR</span>
+                        <span class="fw-semibold text-success">28.5%</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="kpi-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Cash-on-Cash</span>
+                        <span class="fw-semibold text-success">2.8x</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 70%"></div>
+                    </div>
+                </div>
+                <div class="kpi-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">TVPI</span>
+                        <span class="fw-semibold text-warning">1.4x</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-warning" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="kpi-item">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">DPI</span>
+                        <span class="fw-semibold text-info">0.3x</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: 30%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reports -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock text-nest me-2"></i>Recent Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="report-item d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <div class="fw-semibold">Q4 Portfolio Review</div>
+                        <small class="text-muted">Generated Dec 15, 2023</small>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Download</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-share me-2"></i>Share</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="report-item d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <div class="fw-semibold">Investor Update - Nov 2023</div>
+                        <small class="text-muted">Generated Nov 30, 2023</small>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Download</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-share me-2"></i>Share</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="report-item d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fw-semibold">Risk Assessment Report</div>
+                        <small class="text-muted">Generated Nov 15, 2023</small>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Download</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-share me-2"></i>Share</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Report Modal -->
+<div class="modal fade" id="generateReportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Generate Custom Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reportForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Report Type</label>
+                                <select class="form-select" required>
+                                    <option value="">Select Report Type</option>
+                                    <option value="portfolio-overview">Portfolio Overview</option>
+                                    <option value="performance-review">Performance Review</option>
+                                    <option value="investor-update">Investor Update</option>
+                                    <option value="financial-analysis">Financial Analysis</option>
+                                    <option value="risk-assessment">Risk Assessment</option>
+                                    <option value="custom">Custom Report</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Time Period</label>
+                                <select class="form-select" required>
+                                    <option value="last-quarter">Last Quarter</option>
+                                    <option value="last-month">Last Month</option>
+                                    <option value="last-year">Last Year</option>
+                                    <option value="ytd">Year to Date</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Startups Included</label>
+                                <select class="form-select" multiple>
+                                    <option value="all" selected>All Startups</option>
+                                    <option value="techflow">TechFlow AI</option>
+                                    <option value="greentech">GreenTech Solutions</option>
+                                    <option value="healthtech">HealthTech Labs</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Metrics Included</label>
+                                <select class="form-select" multiple>
+                                    <option value="financial" selected>Financial Metrics</option>
+                                    <option value="growth" selected>Growth Metrics</option>
+                                    <option value="team">Team Metrics</option>
+                                    <option value="funding">Funding Metrics</option>
+                                    <option value="risk">Risk Indicators</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Report Format</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="format" id="format-pdf" checked>
+                            <label class="form-check-label" for="format-pdf">PDF Document</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="format" id="format-excel">
+                            <label class="form-check-label" for="format-excel">Excel Spreadsheet</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="format" id="format-presentation">
+                            <label class="form-check-label" for="format-presentation">PowerPoint Presentation</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea class="form-control" rows="3" placeholder="Any specific requirements or notes..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="generateReportBtn">
+                    <i class="bi bi-gear me-1"></i>Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-card {
+        transition: transform 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .kpi-item .progress {
+        height: 6px;
+    }
+
+    .report-item:hover {
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+        margin: -0.5rem;
+    }
+
+    .btn-outline-primary {
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline-primary:hover {
+        transform: translateY(-1px);
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Time period filter buttons
+        document.querySelectorAll('[data-period]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('[data-period]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                const period = this.getAttribute('data-period');
+                console.log('Changing time period to:', period);
+                // In a real app, this would update the charts
+            });
+        });
+
+        // Report template buttons
+        document.querySelectorAll('[data-report]').forEach(button => {
+            button.addEventListener('click', function() {
+                const reportType = this.getAttribute('data-report');
+                
+                // Auto-fill the generate report modal
+                const modal = new bootstrap.Modal(document.getElementById('generateReportModal'));
+                const reportTypeSelect = document.querySelector('select[required]');
+                
+                // Set the report type based on button clicked
+                switch(reportType) {
+                    case 'portfolio-overview':
+                        reportTypeSelect.value = 'portfolio-overview';
+                        break;
+                    case 'performance-review':
+                        reportTypeSelect.value = 'performance-review';
+                        break;
+                    case 'investor-update':
+                        reportTypeSelect.value = 'investor-update';
+                        break;
+                    case 'financial-analysis':
+                        reportTypeSelect.value = 'financial-analysis';
+                        break;
+                    case 'risk-assessment':
+                        reportTypeSelect.value = 'risk-assessment';
+                        break;
+                }
+                
+                modal.show();
+            });
+        });
+
+        // Generate report functionality
+        document.getElementById('generateReportBtn').addEventListener('click', function() {
+            const form = document.getElementById('reportForm');
+            const reportType = form.querySelector('select').value;
+            
+            if (!reportType) {
+                alert('Please select a report type.');
+                return;
+            }
+            
+            // Show loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Generating...';
+            this.disabled = true;
+            
+            // Simulate report generation
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('generateReportModal'));
+                modal.hide();
+                
+                // Show success message
+                alert('Report generated successfully! You can download it from the Recent Reports section.');
+                
+                // In a real app, this would add the report to the recent reports list
+            }, 2000);
+        });
+
+        // Export functionality
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            if (item.textContent.includes('Download')) {
+                item.addEventListener('click', function() {
+                    const reportName = this.closest('.report-item').querySelector('.fw-semibold').textContent;
+                    alert(`Downloading: ${reportName}\n\nIn a real application, this would initiate the download.`);
+                });
+            }
+        });
+
+        // KPI progress bar animations
+        const observerOptions = {
+            threshold: 0.5
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const progressBar = entry.target.querySelector('.progress-bar');
+                    const currentWidth = progressBar.style.width;
+                    progressBar.style.width = '0%';
+                    
+                    setTimeout(() => {
+                        progressBar.style.width = currentWidth;
+                    }, 100);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.kpi-item').forEach(item => {
+            observer.observe(item);
+        });
+    });
+</script>
+{% endblock %}

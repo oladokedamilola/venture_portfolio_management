@@ -1,0 +1,537 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Edit {{ startup.name }} - VentureNest{% endblock %}
+
+{% block page_title %}Edit Startup{% endblock %}
+{% block page_subtitle %}Update {{ startup.name }}'s information and settings{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'manager:startup_detail' startup.id %}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-eye me-1"></i>View Details
+    </a>
+    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+        <i class="bi bi-trash me-1"></i>Delete
+    </button>
+</div>
+{% endblock %}
+
+{% block user_content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-4">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pencil-square text-nest me-2"></i>Edit Startup Information
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data" id="editStartupForm">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-nest">
+                            <i class="bi bi-info-circle me-2"></i>Basic Information
+                        </h6>
+                        
+                        <!-- Startup Name -->
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label fw-semibold">Startup Name *</label>
+                            <input type="text" 
+                                   name="name" 
+                                   id="id_name" 
+                                   class="form-control" 
+                                   value="{{ startup.name }}"
+                                   required>
+                        </div>
+
+                        <!-- Logo -->
+                        <div class="mb-3">
+                            <label for="id_logo" class="form-label fw-semibold">Company Logo</label>
+                            <div class="d-flex align-items-center">
+                                <div class="logo-preview me-3">
+                                    <img src="{{ startup.logo.url|default:'/static/images/default-startup.png' }}" 
+                                         alt="Logo preview" 
+                                         class="rounded border" 
+                                         id="logo-preview"
+                                         style="width: 80px; height: 80px; object-fit: cover;">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="file" 
+                                           name="logo" 
+                                           id="id_logo" 
+                                           class="form-control" 
+                                           accept="image/*">
+                                    <div class="form-text">
+                                        <button type="button" class="btn btn-sm btn-outline-danger mt-1" id="removeLogo">
+                                            <i class="bi bi-trash me-1"></i>Remove Logo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label fw-semibold">Description *</label>
+                            <textarea name="description" 
+                                      id="id_description" 
+                                      class="form-control" 
+                                      rows="4"
+                                      required>{{ startup.description }}</textarea>
+                            <div class="form-text">Provide a clear overview of what the startup does.</div>
+                        </div>
+                    </div>
+
+                    <!-- Business Details -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-nest">
+                            <i class="bi bi-briefcase me-2"></i>Business Details
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_industry" class="form-label fw-semibold">Industry *</label>
+                                    <select name="industry" id="id_industry" class="form-select" required>
+                                        <option value="">Select Industry</option>
+                                        <option value="technology" {% if startup.industry == 'technology' %}selected{% endif %}>Technology</option>
+                                        <option value="healthcare" {% if startup.industry == 'healthcare' %}selected{% endif %}>Healthcare</option>
+                                        <option value="clean-energy" {% if startup.industry == 'clean-energy' %}selected{% endif %}>Clean Energy</option>
+                                        <option value="fintech" {% if startup.industry == 'fintech' %}selected{% endif %}>Fintech</option>
+                                        <option value="ecommerce" {% if startup.industry == 'ecommerce' %}selected{% endif %}>E-commerce</option>
+                                        <option value="education" {% if startup.industry == 'education' %}selected{% endif %}>Education</option>
+                                        <option value="other" {% if startup.industry == 'other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_stage" class="form-label fw-semibold">Funding Stage *</label>
+                                    <select name="stage" id="id_stage" class="form-select" required>
+                                        <option value="">Select Stage</option>
+                                        <option value="pre-seed" {% if startup.stage == 'pre-seed' %}selected{% endif %}>Pre-Seed</option>
+                                        <option value="seed" {% if startup.stage == 'seed' %}selected{% endif %}>Seed</option>
+                                        <option value="series-a" {% if startup.stage == 'series-a' %}selected{% endif %}>Series A</option>
+                                        <option value="series-b" {% if startup.stage == 'series-b' %}selected{% endif %}>Series B</option>
+                                        <option value="series-c" {% if startup.stage == 'series-c' %}selected{% endif %}>Series C+</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_status" class="form-label fw-semibold">Status</label>
+                                    <select name="status" id="id_status" class="form-select">
+                                        <option value="on_track" {% if startup.status == 'on_track' %}selected{% endif %}>On Track</option>
+                                        <option value="needs_review" {% if startup.status == 'needs_review' %}selected{% endif %}>Needs Review</option>
+                                        <option value="at_risk" {% if startup.status == 'at_risk' %}selected{% endif %}>At Risk</option>
+                                        <option value="paused" {% if startup.status == 'paused' %}selected{% endif %}>Paused</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_founded_date" class="form-label fw-semibold">Founded Date</label>
+                                    <input type="date" 
+                                           name="founded_date" 
+                                           id="id_founded_date" 
+                                           class="form-control"
+                                           value="{{ startup.founded_date|date:'Y-m-d' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_website" class="form-label fw-semibold">Website</label>
+                                    <input type="url" 
+                                           name="website" 
+                                           id="id_website" 
+                                           class="form-control" 
+                                           value="{{ startup.website }}"
+                                           placeholder="https://example.com">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_team_size" class="form-label fw-semibold">Team Size</label>
+                                    <input type="number" 
+                                           name="team_size" 
+                                           id="id_team_size" 
+                                           class="form-control" 
+                                           value="{{ startup.team_size }}"
+                                           min="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-nest">
+                            <i class="bi bi-currency-dollar me-2"></i>Financial Information
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_valuation" class="form-label fw-semibold">Valuation ($)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" 
+                                               name="valuation" 
+                                               id="id_valuation" 
+                                               class="form-control" 
+                                               value="{{ startup.valuation }}"
+                                               placeholder="8000000">
+                                        <span class="input-group-text">.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_amount_raised" class="form-label fw-semibold">Total Raised ($)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" 
+                                               name="amount_raised" 
+                                               id="id_amount_raised" 
+                                               class="form-control" 
+                                               value="{{ startup.amount_raised }}"
+                                               placeholder="2000000">
+                                        <span class="input-group-text">.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_monthly_revenue" class="form-label fw-semibold">Monthly Revenue ($)</label>
+                                    <input type="number" 
+                                           name="monthly_revenue" 
+                                           id="id_monthly_revenue" 
+                                           class="form-control" 
+                                           value="{{ startup.monthly_revenue }}"
+                                           placeholder="125000">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_burn_rate" class="form-label fw-semibold">Monthly Burn Rate ($)</label>
+                                    <input type="number" 
+                                           name="burn_rate" 
+                                           id="id_burn_rate" 
+                                           class="form-control" 
+                                           value="{{ startup.burn_rate }}"
+                                           placeholder="85000">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team Management -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-nest">
+                            <i class="bi bi-people me-2"></i>Team Management
+                        </h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Team Members</label>
+                            <div id="teamMembersList" class="mb-3">
+                                {% for member in startup.team_members.all %}
+                                <div class="team-member-item d-flex align-items-center justify-content-between p-2 border rounded-3 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ member.user.profile.image.url|default:'/static/images/default-avatar.png' }}" 
+                                             alt="{{ member.user.get_full_name }}" 
+                                             class="rounded-circle me-2" 
+                                             width="32" 
+                                             height="32">
+                                        <div>
+                                            <div class="fw-semibold">{{ member.user.get_full_name }}</div>
+                                            <small class="text-muted">{{ member.role }}</small>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-member" data-member-id="{{ member.id }}">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <select class="form-select" id="addMemberSelect">
+                                    <option value="">Select user to add...</option>
+                                    <option value="1">Alex Chen (Founder)</option>
+                                    <option value="2">Sarah Johnson (CTO)</option>
+                                    <option value="3">Mike Rodriguez (Advisor)</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-primary" id="addMemberBtn">
+                                    <i class="bi bi-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <a href="{% url 'manager:startup_detail' startup.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary" id="previewBtn">
+                                <i class="bi bi-eye me-1"></i>Preview
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Change History -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-clock-history text-nest me-2"></i>Recent Changes
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="change-history">
+                    <div class="change-item mb-3">
+                        <div class="fw-semibold">Valuation Updated</div>
+                        <small class="text-muted">$7M → $8M</small>
+                        <div class="text-muted small">By John Doe • 2 days ago</div>
+                    </div>
+                    <div class="change-item mb-3">
+                        <div class="fw-semibold">Status Changed</div>
+                        <small class="text-muted">On Track → Needs Review</small>
+                        <div class="text-muted small">By Sarah Chen • 1 week ago</div>
+                    </div>
+                    <div class="change-item">
+                        <div class="fw-semibold">Team Member Added</div>
+                        <small class="text-muted">Mike Rodriguez (Advisor)</small>
+                        <div class="text-muted small">By Alex Chen • 2 weeks ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightning text-nest me-2"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'manager:funding_rounds' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-currency-dollar me-2"></i>Add Funding Round
+                    </a>
+                    <a href="{% url 'manager:projects' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-kanban me-2"></i>Create Project
+                    </a>
+                    <a href="#" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-file-earmark-text me-2"></i>Generate Report
+                    </a>
+                    <a href="#" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-graph-up me-2"></i>Update Metrics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Delete Startup
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ startup.name }}</strong>?</p>
+                <p class="text-muted small">
+                    This action cannot be undone. All associated data, projects, and funding information will be permanently removed.
+                </p>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmDelete">
+                    <label class="form-check-label" for="confirmDelete">
+                        I understand this action is irreversible
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="bi bi-trash me-1"></i>Delete Startup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-nest-green);
+        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.1);
+    }
+
+    .logo-preview img {
+        transition: opacity 0.3s ease;
+    }
+
+    .team-member-item {
+        transition: background-color 0.2s ease;
+    }
+
+    .team-member-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .change-item {
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .change-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('editStartupForm');
+        const logoInput = document.getElementById('id_logo');
+        const logoPreview = document.getElementById('logo-preview');
+        const removeLogoBtn = document.getElementById('removeLogo');
+        const confirmDelete = document.getElementById('confirmDelete');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+        // Logo preview and removal
+        logoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoPreview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeLogoBtn.addEventListener('click', function() {
+            logoInput.value = '';
+            logoPreview.src = '/static/images/default-startup.png';
+        });
+
+        // Team management
+        document.getElementById('addMemberBtn').addEventListener('click', function() {
+            const select = document.getElementById('addMemberSelect');
+            const memberId = select.value;
+            const memberText = select.options[select.selectedIndex].text;
+            
+            if (memberId) {
+                const memberHTML = `
+                    <div class="team-member-item d-flex align-items-center justify-content-between p-2 border rounded-3 mb-2">
+                        <div class="d-flex align-items-center">
+                            <img src="/static/images/default-avatar.png" 
+                                 alt="${memberText}" 
+                                 class="rounded-circle me-2" 
+                                 width="32" 
+                                 height="32">
+                            <div>
+                                <div class="fw-semibold">${memberText}</div>
+                                <small class="text-muted">Team Member</small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-member">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                `;
+                document.getElementById('teamMembersList').insertAdjacentHTML('beforeend', memberHTML);
+                select.value = '';
+            }
+        });
+
+        // Remove team member
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-member')) {
+                e.target.closest('.team-member-item').remove();
+            }
+        });
+
+        // Delete confirmation
+        confirmDelete.addEventListener('change', function() {
+            confirmDeleteBtn.disabled = !this.checked;
+        });
+
+        confirmDeleteBtn.addEventListener('click', function() {
+            // In a real app, this would submit a delete request
+            window.location.href = "{% url 'manager:startup_list' %}";
+        });
+
+        // Form validation
+        form.addEventListener('submit', function(e) {
+            const name = document.getElementById('id_name').value.trim();
+            const description = document.getElementById('id_description').value.trim();
+            const industry = document.getElementById('id_industry').value;
+            const stage = document.getElementById('id_stage').value;
+
+            if (!name || !description || !industry || !stage) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Saving...';
+        });
+
+        // Preview functionality
+        document.getElementById('previewBtn').addEventListener('click', function() {
+            // In a real app, this would show a preview of the changes
+            alert('Preview functionality would show how the startup page will look with current changes.');
+        });
+
+        // Auto-format currency inputs
+        ['id_valuation', 'id_amount_raised', 'id_monthly_revenue', 'id_burn_rate'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('blur', function() {
+                    if (this.value) {
+                        this.value = parseInt(this.value).toLocaleString();
+                    }
+                });
+                
+                input.addEventListener('focus', function() {
+                    if (this.value) {
+                        this.value = this.value.replace(/,/g, '');
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

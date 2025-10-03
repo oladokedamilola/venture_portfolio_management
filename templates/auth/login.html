@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - VentureNest{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <!-- Login Card -->
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-nest text-white text-center py-4 rounded-top-3">
+                    <h2 class="h3 mb-0 fw-bold">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Welcome Back
+                    </h2>
+                    <p class="mb-0 mt-2 opacity-75">Sign in to your VentureNest account</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <!-- Django Messages -->
+                    {% if messages %}
+                    <div class="messages mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-3" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="bi 
+                                    {% if message.tags == 'success' %}bi-check-circle-fill text-success
+                                    {% elif message.tags == 'error' %}bi-exclamation-circle-fill text-danger
+                                    {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-warning
+                                    {% else %}bi-info-circle-fill text-info{% endif %} me-2">
+                                </i>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Form Errors -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger rounded-3" role="alert">
+                        <h6 class="alert-heading fw-bold mb-2">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Login Failed
+                        </h6>
+                        <p class="mb-0">Please check your credentials and try again.</p>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" novalidate class="needs-validation">
+                        {% csrf_token %}
+                        
+                        <!-- Username/Email Field -->
+                        <div class="mb-4">
+                            <label for="id_username" class="form-label fw-semibold">
+                                <i class="bi bi-person-circle me-2 text-nest"></i>Username or Email
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-at text-muted"></i>
+                                </span>
+                                <input type="text" 
+                                       name="username" 
+                                       id="id_username" 
+                                       class="form-control border-start-0" 
+                                       placeholder="Enter your username or email" 
+                                       value="{{ form.username.value|default:'' }}"
+                                       required
+                                       autofocus>
+                            </div>
+                            {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            <label for="id_password" class="form-label fw-semibold">
+                                <i class="bi bi-shield-lock me-2 text-nest"></i>Password
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-key text-muted"></i>
+                                </span>
+                                <input type="password" 
+                                       name="password" 
+                                       id="id_password" 
+                                       class="form-control border-start-0 password-input" 
+                                       placeholder="Enter your password" 
+                                       required>
+                                <button type="button" class="btn btn-outline-secondary border-start-0 toggle-password" data-target="id_password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">{{ form.password.errors.0 }}</div>
+                            {% endif %}
+                            
+                            <!-- Forgot Password Link -->
+                            <div class="text-end mt-2">
+                                <a href="{% url 'password_reset' %}" class="text-nest text-decoration-none small">
+                                    <i class="bi bi-question-circle me-1"></i>Forgot your password?
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Remember Me Checkbox -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="remember_me" name="remember_me">
+                                <label class="form-check-label small" for="remember_me">
+                                    Remember me on this device
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold rounded-3" id="loginBtn">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                            <span class="btn-text">Sign In</span>
+                            <div class="spinner-border spinner-border-sm ms-2 d-none" role="status" id="submit-spinner">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </button>
+                    </form>
+
+                    <!-- Demo Account Info (Optional) -->
+                    <div class="alert alert-info mt-4 rounded-3" role="alert">
+                        <h6 class="alert-heading fw-bold mb-2">
+                            <i class="bi bi-info-circle me-2"></i>Demo Access
+                        </h6>
+                        <p class="small mb-0">Want to explore? <a href="#" class="alert-link">Contact us</a> for demo account credentials.</p>
+                    </div>
+
+                    <!-- Register Redirect -->
+                    <div class="text-center mt-4 pt-4 border-top">
+                        <p class="mb-2 text-muted">Don't have an account?</p>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary rounded-3">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Create VentureNest Account
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styles for login page */
+    .card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Toggle Password Button */
+    .toggle-password {
+        transition: all 0.3s ease;
+        border-left: 0;
+    }
+
+    .toggle-password:hover {
+        background-color: var(--color-light-grey);
+        border-color: var(--color-light-grey);
+    }
+
+    /* Form inputs focus state */
+    .form-control:focus {
+        border-color: var(--color-nest-green);
+        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.1);
+    }
+
+    /* Submit button hover effect */
+    .btn-primary {
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+    }
+
+    /* Alert styling */
+    .alert {
+        border: none;
+        border-left: 4px solid;
+    }
+
+    .alert-info {
+        border-left-color: var(--color-sky-blue);
+        background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%);
+    }
+
+    /* Links styling */
+    a.text-nest:hover {
+        color: var(--color-forest-dark) !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('id_password');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginForm = document.querySelector('form');
+
+        // Password toggle functionality
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                    this.setAttribute('aria-label', 'Hide password');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                    this.setAttribute('aria-label', 'Show password');
+                }
+            });
+        });
+
+        // Enter key support for form submission
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginForm.requestSubmit();
+                }
+            });
+        });
+
+        // Form submission handler
+        loginForm.addEventListener('submit', function(e) {
+            // Basic validation
+            const username = document.getElementById('id_username').value.trim();
+            const password = document.getElementById('id_password').value.trim();
+            
+            if (!username || !password) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            loginBtn.querySelector('.btn-text').textContent = 'Signing In...';
+            loginBtn.querySelector('#submit-spinner').classList.remove('d-none');
+            loginBtn.disabled = true;
+        });
+
+        // Auto-focus username field if empty
+        const usernameField = document.getElementById('id_username');
+        if (!usernameField.value) {
+            usernameField.focus();
+        }
+
+        // Add input validation styling
+        document.querySelectorAll('input[required]').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+
+            input.addEventListener('input', function() {
+                if (this.value.trim() !== '') {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.remove('is-valid');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

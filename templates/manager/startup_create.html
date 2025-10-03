@@ -1,0 +1,294 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Add Startup - VentureNest{% endblock %}
+
+{% block page_title %}Add New Startup{% endblock %}
+{% block page_subtitle %}Create a new portfolio company and set up its profile{% endblock %}
+
+{% block user_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-4">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-plus-circle text-nest me-2"></i>Startup Information
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data" id="startupForm">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-nest">
+                            <i class="bi bi-info-circle me-2"></i>Basic Information
+                        </h6>
+                        
+                        <!-- Startup Name -->
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label fw-semibold">Startup Name *</label>
+                            <input type="text" 
+                                   name="name" 
+                                   id="id_name" 
+                                   class="form-control" 
+                                   placeholder="Enter startup name"
+                                   required>
+                            <div class="form-text">The official name of the startup company.</div>
+                        </div>
+
+                        <!-- Logo -->
+                        <div class="mb-3">
+                            <label for="id_logo" class="form-label fw-semibold">Company Logo</label>
+                            <div class="d-flex align-items-center">
+                                <div class="logo-preview me-3">
+                                    <img src="/static/images/default-startup.png" 
+                                         alt="Logo preview" 
+                                         class="rounded border" 
+                                         id="logo-preview"
+                                         style="width: 80px; height: 80px; object-fit: cover;">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="file" 
+                                           name="logo" 
+                                           id="id_logo" 
+                                           class="form-control" 
+                                           accept="image/*">
+                                    <div class="form-text">Recommended: 200x200px PNG or JPG</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label fw-semibold">Description *</label>
+                            <textarea name="description" 
+                                      id="id_description" 
+                                      class="form-control" 
+                                      rows="4" 
+                                      placeholder="Describe the startup's business, mission, and value proposition..."
+                                      required></textarea>
+                            <div class="form-text">Provide a clear overview of what the startup does.</div>
+                        </div>
+                    </div>
+
+                    <!-- Business Details -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-nest">
+                            <i class="bi bi-briefcase me-2"></i>Business Details
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_industry" class="form-label fw-semibold">Industry *</label>
+                                    <select name="industry" id="id_industry" class="form-select" required>
+                                        <option value="">Select Industry</option>
+                                        <option value="technology">Technology</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="clean-energy">Clean Energy</option>
+                                        <option value="fintech">Fintech</option>
+                                        <option value="ecommerce">E-commerce</option>
+                                        <option value="education">Education</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_stage" class="form-label fw-semibold">Funding Stage *</label>
+                                    <select name="stage" id="id_stage" class="form-select" required>
+                                        <option value="">Select Stage</option>
+                                        <option value="pre-seed">Pre-Seed</option>
+                                        <option value="seed">Seed</option>
+                                        <option value="series-a">Series A</option>
+                                        <option value="series-b">Series B</option>
+                                        <option value="series-c">Series C+</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_founded_date" class="form-label fw-semibold">Founded Date</label>
+                                    <input type="date" 
+                                           name="founded_date" 
+                                           id="id_founded_date" 
+                                           class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_website" class="form-label fw-semibold">Website</label>
+                                    <input type="url" 
+                                           name="website" 
+                                           id="id_website" 
+                                           class="form-control" 
+                                           placeholder="https://example.com">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team Information -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-nest">
+                            <i class="bi bi-people me-2"></i>Team Information
+                        </h6>
+                        
+                        <!-- Founder Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Founder(s)</label>
+                            <select name="founders" id="id_founders" class="form-select" multiple>
+                                <option value="1">Alex Chen (alex@techflow.ai)</option>
+                                <option value="2">Sarah Johnson (sarah@techflow.ai)</option>
+                                <option value="3">Mike Rodriguez (mike@venturestudio.com)</option>
+                            </select>
+                            <div class="form-text">Select existing users or they will be invited to join.</div>
+                        </div>
+
+                        <!-- Team Size -->
+                        <div class="mb-3">
+                            <label for="id_team_size" class="form-label fw-semibold">Team Size</label>
+                            <input type="number" 
+                                   name="team_size" 
+                                   id="id_team_size" 
+                                   class="form-control" 
+                                   min="1" 
+                                   placeholder="e.g., 15">
+                        </div>
+                    </div>
+
+                    <!-- Initial Funding -->
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-nest">
+                            <i class="bi bi-currency-dollar me-2"></i>Initial Funding
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_valuation" class="form-label fw-semibold">Valuation</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" 
+                                               name="valuation" 
+                                               id="id_valuation" 
+                                               class="form-control" 
+                                               placeholder="e.g., 8000000">
+                                        <span class="input-group-text">.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_amount_raised" class="form-label fw-semibold">Amount Raised</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" 
+                                               name="amount_raised" 
+                                               id="id_amount_raised" 
+                                               class="form-control" 
+                                               placeholder="e.g., 2000000">
+                                        <span class="input-group-text">.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <a href="{% url 'manager:startup_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary" id="saveDraft">
+                                Save as Draft
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i>Create Startup
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-nest-green);
+        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.1);
+    }
+
+    .logo-preview img {
+        transition: opacity 0.3s ease;
+    }
+
+    .logo-preview:hover img {
+        opacity: 0.8;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Logo preview
+        const logoInput = document.getElementById('id_logo');
+        const logoPreview = document.getElementById('logo-preview');
+
+        logoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoPreview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Form validation
+        const form = document.getElementById('startupForm');
+        form.addEventListener('submit', function(e) {
+            const name = document.getElementById('id_name').value.trim();
+            const description = document.getElementById('id_description').value.trim();
+            const industry = document.getElementById('id_industry').value;
+            const stage = document.getElementById('id_stage').value;
+
+            if (!name || !description || !industry || !stage) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Creating...';
+        });
+
+        // Save draft functionality
+        document.getElementById('saveDraft').addEventListener('click', function() {
+            // In a real app, this would save form data as draft
+            alert('Startup saved as draft.');
+        });
+
+        // Auto-format currency inputs
+        document.getElementById('id_valuation').addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseInt(this.value).toLocaleString();
+            }
+        });
+
+        document.getElementById('id_amount_raised').addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseInt(this.value).toLocaleString();
+            }
+        });
+    });
+</script>
+{% endblock %}

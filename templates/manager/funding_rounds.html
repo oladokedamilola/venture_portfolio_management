@@ -1,0 +1,583 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Funding Rounds - VentureNest{% endblock %}
+
+{% block page_title %}Funding Rounds{% endblock %}
+{% block page_subtitle %}Track all funding activities across your portfolio{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+        <i class="bi bi-funnel me-1"></i>Filter
+    </button>
+    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+        <i class="bi bi-download me-1"></i>Export
+    </button>
+    <a href="#" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createFundingModal">
+        <i class="bi bi-plus-circle me-1"></i>New Round
+    </a>
+</div>
+{% endblock %}
+
+{% block user_content %}
+<!-- Funding Overview Stats -->
+<div class="row mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-primary mb-1">$156M</h3>
+                <small class="text-muted">Total Raised</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-success mb-1">18</h3>
+                <small class="text-muted">Completed Rounds</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-warning mb-1">6</h3>
+                <small class="text-muted">Active Rounds</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-info mb-1">4</h3>
+                <small class="text-muted">Upcoming Rounds</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-nest mb-1">12</h3>
+                <small class="text-muted">Portfolio Companies</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-3">
+                <h3 class="text-danger mb-1">2</h3>
+                <small class="text-muted">Needs Attention</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Filters -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-3">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" id="roundTypeFilter">
+                    <option value="">All Types</option>
+                    <option value="pre-seed">Pre-Seed</option>
+                    <option value="seed">Seed</option>
+                    <option value="series-a">Series A</option>
+                    <option value="series-b">Series B</option>
+                    <option value="series-c">Series C+</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="planning">Planning</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" id="startupFilter">
+                    <option value="">All Startups</option>
+                    <option value="techflow">TechFlow AI</option>
+                    <option value="greentech">GreenTech Solutions</option>
+                    <option value="healthtech">HealthTech Labs</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" placeholder="Search funding rounds...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary btn-sm w-100" id="clearFilters">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Funding Rounds Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-currency-dollar text-nest me-2"></i>All Funding Rounds
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Startup</th>
+                        <th>Round Type</th>
+                        <th>Target Amount</th>
+                        <th>Raised Amount</th>
+                        <th>Valuation</th>
+                        <th>Status</th>
+                        <th>Timeline</th>
+                        <th>Lead Investor</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Completed Round -->
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="/static/images/startup1.png" alt="TechFlow" class="rounded-circle me-2" width="32" height="32">
+                                <div>
+                                    <div class="fw-semibold">TechFlow AI</div>
+                                    <small class="text-muted">Enterprise SaaS</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">Series A</span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">$8,000,000</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-success">$8,000,000</div>
+                            <small class="text-muted">100% funded</small>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">$40,000,000</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-success">Completed</span>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <div>Closed: Jun 15, 2023</div>
+                                <small class="text-muted">45 days</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="/static/images/investor1.png" alt="VC Firm" class="rounded-circle me-2" width="24" height="24">
+                                <span>Sequoia Capital</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'manager:funding_detail' 1 %}">
+                                        <i class="bi bi-eye me-2"></i>View Details
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-pencil me-2"></i>Edit
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-file-earmark-text me-2"></i>Documents
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#">
+                                        <i class="bi bi-archive me-2"></i>Archive
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Active Round -->
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="/static/images/startup2.png" alt="GreenTech" class="rounded-circle me-2" width="32" height="32">
+                                <div>
+                                    <div class="fw-semibold">GreenTech Solutions</div>
+                                    <small class="text-muted">Clean Energy</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning">Seed</span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">$2,000,000</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-warning">$1,200,000</div>
+                            <div class="progress mt-1" style="height: 4px; width: 80px;">
+                                <div class="progress-bar bg-warning" style="width: 60%"></div>
+                            </div>
+                            <small class="text-muted">60% funded</small>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">$8,000,000</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">Active</span>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <div>Closes: Jan 30, 2024</div>
+                                <small class="text-muted">45 days left</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="/static/images/investor2.png" alt="VC Firm" class="rounded-circle me-2" width="24" height="24">
+                                <span>Andreessen Horowitz</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'manager:funding_detail' 2 %}">
+                                        <i class="bi bi-eye me-2"></i>View Details
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-pencil me-2"></i>Edit
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-file-earmark-text me-2"></i>Documents
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-warning" href="#">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>Needs Attention
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Planning Round -->
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="/static/images/startup3.png" alt="HealthTech" class="rounded-circle me-2" width="32" height="32">
+                                <div>
+                                    <div class="fw-semibold">HealthTech Labs</div>
+                                    <small class="text-muted">Healthcare</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">Series B</span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">$15,000,000</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-muted">$0</div>
+                            <small class="text-muted">Not started</small>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">$75,000,000</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">Planning</span>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <div>Starts: Mar 1, 2024</div>
+                                <small class="text-muted">90 days</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-muted">-</div>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'manager:funding_detail' 3 %}">
+                                        <i class="bi bi-eye me-2"></i>View Details
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-pencil me-2"></i>Edit
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-file-earmark-text me-2"></i>Documents
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-success" href="#">
+                                        <i class="bi bi-rocket me-2"></i>Launch Round
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+                Showing <strong>3</strong> of <strong>24</strong> funding rounds
+            </div>
+            <nav aria-label="Funding rounds pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Rounds Section -->
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-warning bg-opacity-10 py-3">
+        <h5 class="card-title mb-0 text-warning">
+            <i class="bi bi-clock me-2"></i>Upcoming Funding Rounds
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="upcoming-round-card p-3 border rounded-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="fw-semibold">MediTech Inc</div>
+                        <span class="badge bg-primary">Series A</span>
+                    </div>
+                    <div class="text-muted small mb-2">Target: $5,000,000</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Starts Feb 1, 2024</small>
+                        <span class="badge bg-warning">30 days</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="upcoming-round-card p-3 border rounded-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="fw-semibold">FinTech Pro</div>
+                        <span class="badge bg-info">Series B</span>
+                    </div>
+                    <div class="text-muted small mb-2">Target: $12,000,000</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Starts Mar 15, 2024</small>
+                        <span class="badge bg-warning">72 days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Funding Round Modal -->
+<div class="modal fade" id="createFundingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Funding Round</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createFundingForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Startup</label>
+                                <select class="form-select" required>
+                                    <option value="">Select Startup</option>
+                                    <option value="1">TechFlow AI</option>
+                                    <option value="2">GreenTech Solutions</option>
+                                    <option value="3">HealthTech Labs</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Round Type</label>
+                                <select class="form-select" required>
+                                    <option value="">Select Round Type</option>
+                                    <option value="pre-seed">Pre-Seed</option>
+                                    <option value="seed">Seed</option>
+                                    <option value="series-a">Series A</option>
+                                    <option value="series-b">Series B</option>
+                                    <option value="series-c">Series C+</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Target Amount ($)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" placeholder="5,000,000" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valuation ($)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" placeholder="25,000,000">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Target Close Date</label>
+                                <input type="date" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Round Description</label>
+                        <textarea class="form-control" rows="3" placeholder="Describe the funding round objectives..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Create Funding Round</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-card {
+        transition: transform 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .upcoming-round-card {
+        transition: all 0.2s ease;
+        background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%);
+    }
+
+    .upcoming-round-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter functionality
+        const roundTypeFilter = document.getElementById('roundTypeFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const startupFilter = document.getElementById('startupFilter');
+        const clearFilters = document.getElementById('clearFilters');
+
+        function applyFilters() {
+            const roundType = roundTypeFilter.value;
+            const status = statusFilter.value;
+            const startup = startupFilter.value;
+            
+            console.log('Applying filters:', { roundType, status, startup });
+            // In a real app, this would filter the funding rounds
+        }
+
+        roundTypeFilter.addEventListener('change', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+        startupFilter.addEventListener('change', applyFilters);
+
+        clearFilters.addEventListener('click', function() {
+            roundTypeFilter.value = '';
+            statusFilter.value = '';
+            startupFilter.value = '';
+            applyFilters();
+        });
+
+        // Search functionality
+        const searchInput = document.querySelector('input[placeholder="Search funding rounds..."]');
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Auto-format currency inputs
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = parseInt(this.value).toLocaleString();
+                }
+            });
+            
+            input.addEventListener('focus', function() {
+                if (this.value) {
+                    this.value = this.value.replace(/,/g, '');
+                }
+            });
+        });
+
+        // Row click handler for details
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    const detailUrl = this.querySelector('a[href*="funding_detail"]').href;
+                    window.location.href = detailUrl;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

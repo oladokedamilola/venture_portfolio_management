@@ -1,0 +1,715 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}{{ funding_round.startup.name }} - {{ funding_round.get_round_type_display }} - VentureNest{% endblock %}
+
+{% block page_title %}{{ funding_round.get_round_type_display }} Round{% endblock %}
+{% block page_subtitle %}{{ funding_round.startup.name }} • {{ funding_round.get_status_display }}{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="#" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editFundingModal">
+        <i class="bi bi-pencil me-1"></i>Edit
+    </a>
+    <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-three-dots-vertical"></i>
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="#">
+            <i class="bi bi-file-earmark-pdf me-2"></i>Generate Report
+        </a></li>
+        <li><a class="dropdown-item" href="#">
+            <i class="bi bi-envelope me-2"></i>Send Update
+        </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-warning" href="#">
+            <i class="bi bi-exclamation-triangle me-2"></i>Flag Issues
+        </a></li>
+        <li><a class="dropdown-item text-danger" href="#">
+            <i class="bi bi-archive me-2"></i>Archive
+        </a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block user_content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Funding Overview -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle text-nest me-2"></i>Round Overview
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <span class="badge {% if funding_round.status == 'completed' %}bg-success{% elif funding_round.status == 'active' %}bg-info{% elif funding_round.status == 'planning' %}bg-secondary{% else %}bg-danger{% endif %}">
+                            {{ funding_round.get_status_display }}
+                        </span>
+                        <span class="badge bg-primary">{{ funding_round.get_round_type_display }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <p class="text-muted mb-4">{{ funding_round.description|default:"No description provided." }}</p>
+                        
+                        <!-- Key Metrics -->
+                        <div class="row text-center mb-4">
+                            <div class="col-3">
+                                <div class="metric-value fw-bold text-nest">${{ funding_round.target_amount|floatformat:0 }}M</div>
+                                <small class="text-muted">Target</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="metric-value fw-bold text-success">${{ funding_round.raised_amount|floatformat:0 }}M</div>
+                                <small class="text-muted">Raised</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="metric-value fw-bold text-primary">${{ funding_round.valuation|floatformat:0 }}M</div>
+                                <small class="text-muted">Valuation</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="metric-value fw-bold text-info">{{ funding_round.investors.count }}</div>
+                                <small class="text-muted">Investors</small>
+                            </div>
+                        </div>
+
+                        <!-- Funding Progress -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-semibold">Funding Progress</span>
+                                <span class="text-muted">{{ funding_round.progress_percentage }}%</span>
+                            </div>
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar bg-success" style="width: {{ funding_round.progress_percentage }}%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">$0</small>
+                                <small class="text-muted">${{ funding_round.target_amount|floatformat:0 }}M</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="funding-timeline">
+                            <div class="timeline-item mb-3">
+                                <div class="text-muted small">Start Date</div>
+                                <div class="fw-semibold">{{ funding_round.start_date|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="timeline-item mb-3">
+                                <div class="text-muted small">Target Close</div>
+                                <div class="fw-semibold">{{ funding_round.target_close_date|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="timeline-item mb-3">
+                                <div class="text-muted small">Actual Close</div>
+                                <div class="fw-semibold">
+                                    {% if funding_round.actual_close_date %}
+                                        {{ funding_round.actual_close_date|date:"M d, Y" }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="text-muted small">Duration</div>
+                                <div class="fw-semibold">{{ funding_round.duration_days }} days</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Details -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="text-muted">Startup:</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ funding_round.startup.logo.url|default:'/static/images/default-startup.png' }}" 
+                                             alt="{{ funding_round.startup.name }}" 
+                                             class="rounded-circle me-2" 
+                                             width="24" 
+                                             height="24">
+                                        <span class="fw-semibold">{{ funding_round.startup.name }}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Round Lead:</td>
+                                <td class="fw-semibold">Sarah Chen</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Security Type:</td>
+                                <td class="fw-semibold">Preferred Stock</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="text-muted">Created:</td>
+                                <td class="fw-semibold">{{ funding_round.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Last Updated:</td>
+                                <td class="fw-semibold">{{ funding_round.updated_at|timesince }} ago</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Round Code:</td>
+                                <td class="fw-semibold text-muted">#{{ funding_round.id|stringformat:"04d" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investors Section -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-people text-nest me-2"></i>Investors
+                    </h5>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addInvestorModal">
+                        <i class="bi bi-plus-circle me-1"></i>Add Investor
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Investor</th>
+                                <th>Type</th>
+                                <th>Commitment</th>
+                                <th>Status</th>
+                                <th>Documents</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="/static/images/investor1.png" alt="Sequoia" class="rounded-circle me-3" width="40" height="40">
+                                        <div>
+                                            <div class="fw-semibold">Sequoia Capital</div>
+                                            <small class="text-muted">Lead Investor</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">VC Firm</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">$4,000,000</div>
+                                    <small class="text-muted">50% of round</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Committed</span>
+                                </td>
+                                <td>
+                                    <div class="document-status">
+                                        <span class="badge bg-success me-1">TS</span>
+                                        <span class="badge bg-success me-1">SAFE</span>
+                                        <span class="badge bg-warning">DD</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Edit</a></li>
+                                            <li><a class="dropdown-item" href="#">Documents</a></li>
+                                            <li><a class="dropdown-item text-warning" href="#">Flag Issue</a></li>
+                                            <li><a class="dropdown-item text-danger" href="#">Remove</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="/static/images/investor2.png" alt="A16Z" class="rounded-circle me-3" width="40" height="40">
+                                        <div>
+                                            <div class="fw-semibold">Andreessen Horowitz</div>
+                                            <small class="text-muted">Co-investor</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">VC Firm</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">$2,000,000</div>
+                                    <small class="text-muted">25% of round</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Committed</span>
+                                </td>
+                                <td>
+                                    <div class="document-status">
+                                        <span class="badge bg-success me-1">TS</span>
+                                        <span class="badge bg-success me-1">SAFE</span>
+                                        <span class="badge bg-success">DD</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Edit</a></li>
+                                            <li><a class="dropdown-item" href="#">Documents</a></li>
+                                            <li><a class="dropdown-item text-warning" href="#">Flag Issue</a></li>
+                                            <li><a class="dropdown-item text-danger" href="#">Remove</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="/static/images/angel1.png" alt="Angel" class="rounded-circle me-3" width="40" height="40">
+                                        <div>
+                                            <div class="fw-semibold">Michael Johnson</div>
+                                            <small class="text-muted">Angel Investor</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">Angel</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">$500,000</div>
+                                    <small class="text-muted">6.25% of round</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">In Discussion</span>
+                                </td>
+                                <td>
+                                    <div class="document-status">
+                                        <span class="badge bg-success me-1">TS</span>
+                                        <span class="badge bg-secondary">SAFE</span>
+                                        <span class="badge bg-secondary">DD</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Edit</a></li>
+                                            <li><a class="dropdown-item" href="#">Documents</a></li>
+                                            <li><a class="dropdown-item text-warning" href="#">Flag Issue</a></li>
+                                            <li><a class="dropdown-item text-danger" href="#">Remove</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline & Milestones -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock text-nest me-2"></i>Funding Timeline
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="funding-timeline-tracker">
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="fw-semibold">Round Planning</div>
+                            <small class="text-muted">Strategy and target setting</small>
+                            <div class="text-muted small">Completed on Oct 1, 2023</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="fw-semibold">Pitch Deck Preparation</div>
+                            <small class="text-muted">Investor materials ready</small>
+                            <div class="text-muted small">Completed on Oct 15, 2023</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="fw-semibold">Investor Outreach</div>
+                            <small class="text-muted">Initial meetings conducted</small>
+                            <div class="text-muted small">Completed on Nov 1, 2023</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item current">
+                        <div class="timeline-marker">
+                            <i class="bi bi-arrow-right-circle-fill"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="fw-semibold">Due Diligence</div>
+                            <small class="text-muted">Legal and financial review</small>
+                            <div class="text-muted small">In progress • Due: Dec 15, 2023</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item upcoming">
+                        <div class="timeline-marker">
+                            <i class="bi bi-circle"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="fw-semibold">Document Signing</div>
+                            <small class="text-muted">Final agreements execution</small>
+                            <div class="text-muted small">Due: Dec 20, 2023</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item upcoming">
+                        <div class="timeline-marker">
+                            <i class="bi bi-circle"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="fw-semibold">Funds Transfer</div>
+                            <small class="text-muted">Capital deployment</small>
+                            <div class="text-muted small">Due: Dec 25, 2023</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Documents Section -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-folder text-nest me-2"></i>Documents
+                    </h5>
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+                        Upload
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="document-category mb-3">
+                    <h6 class="small fw-semibold mb-2">Legal Documents</h6>
+                    <div class="document-item d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                            <span class="small">Term_Sheet.pdf</span>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="document-item d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-file-earmark-text text-success me-2"></i>
+                            <span class="small">SAFE_Agreement.pdf</span>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="document-category mb-3">
+                    <h6 class="small fw-semibold mb-2">Financial Models</h6>
+                    <div class="document-item d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>
+                            <span class="small">Financial_Model.xlsx</span>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="document-category">
+                    <h6 class="small fw-semibold mb-2">Pitch Materials</h6>
+                    <div class="document-item d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-file-earmark-ppt text-warning me-2"></i>
+                            <span class="small">Pitch_Deck.pptx</span>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Contacts -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-telephone text-nest me-2"></i>Key Contacts
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="contact-item d-flex align-items-center mb-3">
+                    <img src="/static/images/avatar4.png" alt="Sarah" class="rounded-circle me-3" width="40" height="40">
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">Sarah Chen</div>
+                        <small class="text-muted">Investment Partner</small>
+                        <div class="small">
+                            <a href="mailto:sarah@sequoia.com" class="text-nest text-decoration-none">
+                                <i class="bi bi-envelope me-1"></i>sarah@sequoia.com
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-item d-flex align-items-center mb-3">
+                    <img src="/static/images/avatar5.png" alt="Mike" class="rounded-circle me-3" width="40" height="40">
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">Mike Rodriguez</div>
+                        <small class="text-muted">Legal Counsel</small>
+                        <div class="small">
+                            <a href="mailto:mike@lawfirm.com" class="text-nest text-decoration-none">
+                                <i class="bi bi-envelope me-1"></i>mike@lawfirm.com
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning text-nest me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#sendUpdateModal">
+                        <i class="bi bi-envelope me-2"></i>Send Investor Update
+                    </button>
+                    <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                        <i class="bi bi-file-earmark-text me-2"></i>Generate Report
+                    </button>
+                    <button class="btn btn-outline-primary text-start">
+                        <i class="bi bi-calendar me-2"></i>Schedule Meeting
+                    </button>
+                    <button class="btn btn-outline-primary text-start">
+                        <i class="bi bi-graph-up me-2"></i>Update Progress
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Investor Modal -->
+<div class="modal fade" id="addInvestorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Investor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Investor Name</label>
+                        <input type="text" class="form-control" placeholder="Enter investor name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Investor Type</label>
+                        <select class="form-select">
+                            <option>VC Firm</option>
+                            <option>Angel Investor</option>
+                            <option>Corporate VC</option>
+                            <option>Family Office</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Commitment Amount ($)</label>
+                        <input type="number" class="form-control" placeholder="500,000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select">
+                            <option>In Discussion</option>
+                            <option>Term Sheet Signed</option>
+                            <option>Committed</option>
+                            <option>Declined</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Add Investor</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .metric-value {
+        font-size: 1.25rem;
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .funding-timeline-tracker {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding: 1rem 0;
+        border-left: 2px solid #e9ecef;
+    }
+
+    .timeline-item:last-child {
+        border-left: 2px solid transparent;
+    }
+
+    .timeline-item.completed {
+        border-left-color: var(--color-nest-green);
+    }
+
+    .timeline-item.current {
+        border-left-color: var(--color-sky-blue);
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        top: 1rem;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .timeline-item.completed .timeline-marker {
+        color: var(--color-nest-green);
+    }
+
+    .timeline-item.current .timeline-marker {
+        color: var(--color-sky-blue);
+    }
+
+    .timeline-item.upcoming .timeline-marker {
+        color: #6c757d;
+    }
+
+    .document-item:hover {
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+        margin: -0.5rem;
+    }
+
+    .contact-item:hover {
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+        margin: -0.5rem;
+    }
+
+    .document-status .badge {
+        font-size: 0.7rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Investor status updates
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            if (item.textContent.includes('Flag Issue')) {
+                item.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const statusBadge = row.querySelector('.badge.bg-success, .badge.bg-warning');
+                    if (statusBadge) {
+                        statusBadge.className = 'badge bg-danger';
+                        statusBadge.textContent = 'Issue Flagged';
+                    }
+                });
+            }
+        });
+
+        // Document viewer simulation
+        document.querySelectorAll('.btn-outline-secondary .bi-eye').forEach(eyeIcon => {
+            eyeIcon.closest('button').addEventListener('click', function() {
+                const documentName = this.closest('.document-item').querySelector('.small').textContent;
+                alert(`Previewing document: ${documentName}\n\nIn a real application, this would open a document viewer.`);
+            });
+        });
+
+        // Quick action animations
+        document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-1px)';
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Auto-format currency inputs
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = parseInt(this.value).toLocaleString();
+                }
+            });
+            
+            input.addEventListener('focus', function() {
+                if (this.value) {
+                    this.value = this.value.replace(/,/g, '');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

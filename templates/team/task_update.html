@@ -1,0 +1,249 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Update Task Status</h1>
+            <p class="text-muted">{{ task.title }}</p>
+        </div>
+        <a href="{% url 'team_task_detail' task.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Task
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Update Progress</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Current Status -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Current Status</strong></label>
+                            <div class="current-status p-3 bg-light rounded">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">Status:</small>
+                                        <br>
+                                        <span class="badge 
+                                            {% if task.status == 'completed' %}bg-success
+                                            {% elif task.status == 'in_progress' %}bg-primary
+                                            {% elif task.status == 'review' %}bg-warning
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Progress:</small>
+                                        <br>
+                                        <span class="text-muted">{{ task.progress }}% complete</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Update -->
+                        <div class="mb-4">
+                            <label for="status" class="form-label">Update Status *</label>
+                            <select class="form-control" id="status" name="status" required>
+                                <option value="not_started" {% if task.status == 'not_started' %}selected{% endif %}>Not Started</option>
+                                <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="review" {% if task.status == 'review' %}selected{% endif %}>Under Review</option>
+                                <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="blocked" {% if task.status == 'blocked' %}selected{% endif %}>Blocked</option>
+                            </select>
+                        </div>
+
+                        <!-- Progress Percentage -->
+                        <div class="mb-4">
+                            <label for="progress" class="form-label">Progress Percentage</label>
+                            <input type="range" class="form-range" id="progress" name="progress" 
+                                   min="0" max="100" value="{{ task.progress }}" 
+                                   oninput="updateProgressValue(this.value)">
+                            <div class="d-flex justify-content-between">
+                                <small>0%</small>
+                                <small id="progressValue">{{ task.progress }}%</small>
+                                <small>100%</small>
+                            </div>
+                        </div>
+
+                        <!-- Hours Spent -->
+                        {% if task.estimated_hours %}
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="hours_spent" class="form-label">Hours Spent</label>
+                                <input type="number" class="form-control" id="hours_spent" name="hours_spent" 
+                                       value="{{ task.hours_spent|default:0 }}" min="0" step="0.5">
+                                <small class="text-muted">Estimated: {{ task.estimated_hours }} hours</small>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mt-4 pt-2">
+                                    {% if task.estimated_hours %}
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-info" 
+                                             style="width: {% widthratio task.hours_spent task.estimated_hours 100 %}%;"></div>
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ task.hours_spent|default:0 }}/{{ task.estimated_hours }} hours
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Update Message -->
+                        <div class="mb-4">
+                            <label for="update_message" class="form-label">Update Message *</label>
+                            <textarea class="form-control" id="update_message" name="update_message" 
+                                      rows="4" placeholder="Describe what you've accomplished, any challenges faced, or next steps..." required></textarea>
+                            <small class="text-muted">This will be visible to project managers and team members.</small>
+                        </div>
+
+                        <!-- Blockers -->
+                        <div class="mb-4" id="blockersSection" style="display: none;">
+                            <label for="blockers" class="form-label">What's blocking progress?</label>
+                            <textarea class="form-control" id="blockers" name="blockers" 
+                                      rows="3" placeholder="Describe any issues preventing you from making progress..."></textarea>
+                            <small class="text-muted">This will alert project managers to help resolve the issue.</small>
+                        </div>
+
+                        <!-- Attachments -->
+                        <div class="mb-4">
+                            <label for="attachments" class="form-label">Attachments</label>
+                            <input type="file" class="form-control" id="attachments" name="attachments" multiple>
+                            <small class="text-muted">Upload any relevant files (screenshots, documents, etc.)</small>
+                        </div>
+
+                        <!-- Next Steps -->
+                        <div class="mb-4">
+                            <label for="next_steps" class="form-label">Next Steps</label>
+                            <textarea class="form-control" id="next_steps" name="next_steps" 
+                                      rows="3" placeholder="What will you work on next?"></textarea>
+                        </div>
+
+                        <!-- ETA -->
+                        <div class="mb-4">
+                            <label for="eta" class="form-label">Revised Completion Date</label>
+                            <input type="date" class="form-control" id="eta" name="eta" 
+                                   value="{% if task.due_date %}{{ task.due_date|date:'Y-m-d' }}{% endif %}">
+                            <small class="text-muted">Update if the original due date needs to change</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Task
+                            </button>
+                            <a href="{% url 'team_task_detail' task.id %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Task Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Task Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Project:</strong>
+                        <p class="mb-0">{{ task.project.name }}</p>
+                        <small class="text-muted">{{ task.project.startup.name }}</small>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Priority:</strong>
+                        <br>
+                        <span class="badge 
+                            {% if task.priority == 'high' %}bg-danger
+                            {% elif task.priority == 'medium' %}bg-warning
+                            {% else %}bg-info{% endif %}">
+                            {{ task.get_priority_display }}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Due Date:</strong>
+                        <br>
+                        {% if task.due_date %}
+                            <span class="{% if task.is_overdue %}text-danger{% endif %}">
+                                {{ task.due_date|date:"M d, Y" }}
+                            </span>
+                            {% if task.is_overdue %}
+                                <br><small class="text-danger">Overdue</small>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">Not set</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Guide -->
+            <div class="card">
+                <div class="card-header bg-nest text-white">
+                    <h6 class="card-title mb-0">Status Guide</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Not Started</h6>
+                        <p class="small text-muted">Task is assigned but work hasn't begun.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">In Progress</h6>
+                        <p class="small text-muted">Actively working on the task.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Under Review</h6>
+                        <p class="small text-muted">Work completed, waiting for review/feedback.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-nest-green">Completed</h6>
+                        <p class="small text-muted">Task finished and approved.</p>
+                    </div>
+                    <div>
+                        <h6 class="text-nest-green">Blocked</h6>
+                        <p class="small text-muted">Unable to progress due to external factors.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateProgressValue(value) {
+        document.getElementById('progressValue').textContent = value + '%';
+    }
+
+    // Show/hide blockers section based on status
+    document.getElementById('status').addEventListener('change', function() {
+        const blockersSection = document.getElementById('blockersSection');
+        if (this.value === 'blocked') {
+            blockersSection.style.display = 'block';
+        } else {
+            blockersSection.style.display = 'none';
+        }
+    });
+
+    // Initialize based on current status
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusSelect = document.getElementById('status');
+        const blockersSection = document.getElementById('blockersSection');
+        if (statusSelect.value === 'blocked') {
+            blockersSection.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

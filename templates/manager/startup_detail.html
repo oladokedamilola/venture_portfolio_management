@@ -1,0 +1,389 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} - VentureNest{% endblock %}
+
+{% block page_title %}{{ startup.name }}{% endblock %}
+{% block page_subtitle %}{{ startup.industry }} • {{ startup.get_stage_display }}{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'manager:startup_edit' startup.id %}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-pencil me-1"></i>Edit
+    </a>
+    <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-three-dots-vertical"></i>
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="#">
+            <i class="bi bi-archive me-2"></i>Archive
+        </a></li>
+        <li><a class="dropdown-item" href="#">
+            <i class="bi bi-file-earmark-text me-2"></i>Generate Report
+        </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="#">
+            <i class="bi bi-trash me-2"></i>Delete
+        </a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block user_content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Overview Card -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle text-nest me-2"></i>Overview
+                    </h5>
+                    <span class="badge {% if startup.status == 'on_track' %}bg-success{% elif startup.status == 'needs_review' %}bg-warning{% else %}bg-danger{% endif %}">
+                        {{ startup.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-3 text-center">
+                        <img src="{{ startup.logo.url|default:'/static/images/default-startup.png' }}" 
+                             alt="{{ startup.name }}" 
+                             class="rounded-circle shadow-sm mb-3"
+                             style="width: 100px; height: 100px; object-fit: cover;">
+                    </div>
+                    <div class="col-md-9">
+                        <p class="text-muted mb-3">{{ startup.description }}</p>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="metric-value fw-bold text-nest">{{ startup.team_size }}</div>
+                                <small class="text-muted">Team Size</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="metric-value fw-bold text-nest">${{ startup.amount_raised|floatformat:0 }}M</div>
+                                <small class="text-muted">Funding Raised</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="metric-value fw-bold text-nest">85%</div>
+                                <small class="text-muted">Progress</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bars -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="fw-semibold">Overall Progress</span>
+                        <span class="text-muted">85%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                    </div>
+                </div>
+
+                <!-- Key Details -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="text-muted">Industry:</td>
+                                <td class="fw-semibold">{{ startup.get_industry_display }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Stage:</td>
+                                <td class="fw-semibold">{{ startup.get_stage_display }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Founded:</td>
+                                <td class="fw-semibold">{{ startup.founded_date|date:"F Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="text-muted">Website:</td>
+                                <td>
+                                    <a href="{{ startup.website }}" target="_blank" class="text-nest text-decoration-none">
+                                        {{ startup.website|default:"-" }}
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Valuation:</td>
+                                <td class="fw-semibold">${{ startup.valuation|floatformat:0 }}M</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Last Updated:</td>
+                                <td class="fw-semibold">{{ startup.updated_at|timesince }} ago</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Section -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people text-nest me-2"></i>Team
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row" id="teamMembers">
+                    <!-- Team Member -->
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center p-3 border rounded-3">
+                            <img src="/static/images/avatar4.png" alt="Alex Chen" class="rounded-circle me-3" width="50" height="50">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-semibold">Alex Chen</h6>
+                                <small class="text-muted">CEO & Founder</small>
+                                <div class="mt-1">
+                                    <a href="mailto:alex@techflow.ai" class="text-nest text-decoration-none small">
+                                        <i class="bi bi-envelope me-1"></i>alex@techflow.ai
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- More team members... -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock text-nest me-2"></i>Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="activity-timeline">
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-milestone text-primary"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Milestone Completed</div>
+                            <small class="text-muted">Product MVP launched successfully</small>
+                            <div class="text-muted small">2 days ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-currency-dollar text-success"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Funding Update</div>
+                            <small class="text-muted">Series A round closed at $8M</small>
+                            <div class="text-muted small">1 week ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Stats -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up text-nest me-2"></i>Key Metrics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="metric-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Monthly Revenue</span>
+                        <span class="fw-semibold">$125K</span>
+                    </div>
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-success" style="width: 75%"></div>
+                    </div>
+                </div>
+                <div class="metric-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Customer Growth</span>
+                        <span class="fw-semibold">+24%</span>
+                    </div>
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-info" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="metric-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Burn Rate</span>
+                        <span class="fw-semibold">$85K/mo</span>
+                    </div>
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-warning" style="width: 60%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Funding Rounds -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-currency-dollar text-nest me-2"></i>Funding
+                    </h5>
+                    <a href="{% url 'manager:funding_rounds' %}" class="btn btn-outline-primary btn-sm">
+                        View All
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="funding-round mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <span class="fw-semibold">Series A</span>
+                        <span class="badge bg-success">Completed</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>$8,000,000</span>
+                        <span>Jun 2023</span>
+                    </div>
+                </div>
+                <div class="funding-round mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <span class="fw-semibold">Seed Round</span>
+                        <span class="badge bg-success">Completed</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>$1,500,000</span>
+                        <span>Mar 2022</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-folder text-nest me-2"></i>Documents
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="document-item d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                        <span class="small">Pitch_Deck.pdf</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+                <div class="document-item d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                        <span class="small">Cap_Table.xlsx</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="startupTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button">
+                    <i class="bi bi-kanban me-1"></i>Projects
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="financials-tab" data-bs-toggle="tab" data-bs-target="#financials" type="button">
+                    <i class="bi bi-graph-up me-1"></i>Financials
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button">
+                    <i class="bi bi-speedometer me-1"></i>KPIs
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content mt-3" id="startupTabsContent">
+            <div class="tab-pane fade show active" id="projects" role="tabpanel">
+                <!-- Projects content would go here -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-kanban display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Projects Overview</h5>
+                        <p class="text-muted">Track all active projects and their progress.</p>
+                        <a href="{% url 'manager:projects' %}" class="btn btn-primary">View All Projects</a>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="financials" role="tabpanel">
+                <!-- Financials content would go here -->
+            </div>
+            <div class="tab-pane fade" id="metrics" role="tabpanel">
+                <!-- KPIs content would go here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .metric-value {
+        font-size: 1.25rem;
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: var(--color-nest-green);
+        border-bottom: 2px solid var(--color-nest-green);
+    }
+
+    .document-item:hover {
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+        margin: -0.5rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab functionality
+        const triggerTabList = [].slice.call(document.querySelectorAll('#startupTabs button'));
+        triggerTabList.forEach(function (triggerEl) {
+            var tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function (event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+
+        // Metric charts would be initialized here
+        console.log('Startup detail page loaded for:', '{{ startup.name }}');
+    });
+</script>
+{% endblock %}

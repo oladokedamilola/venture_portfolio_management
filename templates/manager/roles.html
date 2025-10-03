@@ -1,0 +1,617 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Role Management - VentureNest{% endblock %}
+
+{% block page_title %}Role & Permission Management{% endblock %}
+{% block page_subtitle %}Configure user roles, permissions, and access levels across the platform{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createRoleModal">
+    <i class="bi bi-plus-circle me-1"></i>Create Role
+</button>
+{% endblock %}
+
+{% block user_content %}
+<div class="row">
+    <!-- Role Overview -->
+    <div class="col-lg-8">
+        <!-- Default Roles -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield-check text-nest me-2"></i>Default Roles
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Venture Manager Role -->
+                    <div class="col-md-6 mb-4">
+                        <div class="role-card card border-0 h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="card-title mb-1">Venture Manager</h5>
+                                        <span class="badge bg-primary">Admin</span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="bi bi-pencil me-2"></i>Edit
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="bi bi-people me-2"></i>Manage Users
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <p class="text-muted small mb-3">
+                                    Full access to all portfolio companies, funding rounds, projects, and user management.
+                                </p>
+                                <div class="role-stats mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Users with this role:</small>
+                                        <span class="fw-semibold">24</span>
+                                    </div>
+                                </div>
+                                <div class="permissions-preview">
+                                    <h6 class="small fw-semibold mb-2">Key Permissions:</h6>
+                                    <ul class="list-unstyled small text-muted">
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Full portfolio access</li>
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>User management</li>
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Funding round administration</li>
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Report generation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Founder Role -->
+                    <div class="col-md-6 mb-4">
+                        <div class="role-card card border-0 h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="card-title mb-1">Founder</h5>
+                                        <span class="badge bg-success">Standard</span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="bi bi-pencil me-2"></i>Edit
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="bi bi-people me-2"></i>Manage Users
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <p class="text-muted small mb-3">
+                                    Access to own startup(s), project management, and funding applications.
+                                </p>
+                                <div class="role-stats mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Users with this role:</small>
+                                        <span class="fw-semibold">45</span>
+                                    </div>
+                                </div>
+                                <div class="permissions-preview">
+                                    <h6 class="small fw-semibold mb-2">Key Permissions:</h6>
+                                    <ul class="list-unstyled small text-muted">
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Own startup management</li>
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Project creation & tracking</li>
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Funding applications</li>
+                                        <li class="mb-1"><i class="bi bi-x-circle text-muted me-1"></i>User management</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team Member Role -->
+                    <div class="col-md-6 mb-4">
+                        <div class="role-card card border-0 h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="card-title mb-1">Team Member</h5>
+                                        <span class="badge bg-info">Limited</span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="bi bi-pencil me-2"></i>Edit
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="bi bi-people me-2"></i>Manage Users
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <p class="text-muted small mb-3">
+                                    Task management and project collaboration within assigned startups.
+                                </p>
+                                <div class="role-stats mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Users with this role:</small>
+                                        <span class="fw-semibold">67</span>
+                                    </div>
+                                </div>
+                                <div class="permissions-preview">
+                                    <h6 class="small fw-semibold mb-2">Key Permissions:</h6>
+                                    <ul class="list-unstyled small text-muted">
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Task management</li>
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Project collaboration</li>
+                                        <li class="mb-1"><i class="bi bi-x-circle text-muted me-1"></i>Startup management</li>
+                                        <li class="mb-1"><i class="bi bi-x-circle text-muted me-1"></i>Funding access</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Investor Role -->
+                    <div class="col-md-6 mb-4">
+                        <div class="role-card card border-0 h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="card-title mb-1">Investor</h5>
+                                        <span class="badge bg-warning">Read-Only</span>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="bi bi-pencil me-2"></i>Edit
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#">
+                                                <i class="bi bi-people me-2"></i>Manage Users
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <p class="text-muted small mb-3">
+                                    Read-only access to portfolio performance, reports, and startup updates.
+                                </p>
+                                <div class="role-stats mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Users with this role:</small>
+                                        <span class="fw-semibold">20</span>
+                                    </div>
+                                </div>
+                                <div class="permissions-preview">
+                                    <h6 class="small fw-semibold mb-2">Key Permissions:</h6>
+                                    <ul class="list-unstyled small text-muted">
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Portfolio viewing</li>
+                                        <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>Report access</li>
+                                        <li class="mb-1"><i class="bi bi-x-circle text-muted me-1"></i>Data modification</li>
+                                        <li class="mb-1"><i class="bi bi-x-circle text-muted me-1"></i>User management</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Roles -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-gear text-nest me-2"></i>Custom Roles
+                    </h5>
+                    <span class="badge bg-secondary">3 roles</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="custom-role-item d-flex justify-content-between align-items-center p-3 border rounded-3 mb-3">
+                    <div>
+                        <h6 class="mb-1 fw-semibold">Project Manager</h6>
+                        <p class="text-muted small mb-0">Enhanced project management permissions with team oversight</p>
+                        <div class="mt-2">
+                            <span class="badge bg-light text-dark me-2">12 users</span>
+                            <span class="badge bg-info">Custom</span>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-pencil me-2"></i>Edit Role
+                            </a></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-people me-2"></i>Manage Assignments
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#">
+                                <i class="bi bi-trash me-2"></i>Delete Role
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="custom-role-item d-flex justify-content-between align-items-center p-3 border rounded-3 mb-3">
+                    <div>
+                        <h6 class="mb-1 fw-semibold">Financial Analyst</h6>
+                        <p class="text-muted small mb-0">Financial data access and reporting capabilities</p>
+                        <div class="mt-2">
+                            <span class="badge bg-light text-dark me-2">8 users</span>
+                            <span class="badge bg-info">Custom</span>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-pencil me-2"></i>Edit Role
+                            </a></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-people me-2"></i>Manage Assignments
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#">
+                                <i class="bi bi-trash me-2"></i>Delete Role
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="custom-role-item d-flex justify-content-between align-items-center p-3 border rounded-3">
+                    <div>
+                        <h6 class="mb-1 fw-semibold">Read-Only Analyst</h6>
+                        <p class="text-muted small mb-0">View-only access for external analysts</p>
+                        <div class="mt-2">
+                            <span class="badge bg-light text-dark me-2">5 users</span>
+                            <span class="badge bg-info">Custom</span>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-pencil me-2"></i>Edit Role
+                            </a></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-people me-2"></i>Manage Assignments
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#">
+                                <i class="bi bi-trash me-2"></i>Delete Role
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Role Statistics -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up text-nest me-2"></i>Role Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="role-distribution-chart mb-3">
+                    <div class="d-flex align-items-center justify-content-center bg-light rounded-3 py-4">
+                        <div class="text-center text-muted">
+                            <i class="bi bi-pie-chart display-4 mb-2"></i>
+                            <p>Role distribution chart</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="role-stats">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Venture Managers</span>
+                        <span class="fw-semibold">24 (15%)</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Founders</span>
+                        <span class="fw-semibold">45 (29%)</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Team Members</span>
+                        <span class="fw-semibold">67 (43%)</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Investors</span>
+                        <span class="fw-semibold">20 (13%)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning text-nest me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#bulkAssignModal">
+                        <i class="bi bi-people me-2"></i>Bulk Role Assignment
+                    </button>
+                    <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#permissionTemplateModal">
+                        <i class="bi bi-clipboard-check me-2"></i>Permission Templates
+                    </button>
+                    <button class="btn btn-outline-primary text-start">
+                        <i class="bi bi-file-earmark-text me-2"></i>Export Role Matrix
+                    </button>
+                    <button class="btn btn-outline-primary text-start">
+                        <i class="bi bi-shield-check me-2"></i>Audit Permissions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock text-nest me-2"></i>Recent Role Changes
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="activity-timeline">
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-person-plus text-success"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Role Assigned</div>
+                            <small class="text-muted">Sarah Chen → Project Manager</small>
+                            <div class="text-muted small">By John Anderson • 2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-gear text-primary"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Permissions Updated</div>
+                            <small class="text-muted">Financial Analyst role modified</small>
+                            <div class="text-muted small">By Sarah Chen • 1 day ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item d-flex">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-person-dash text-warning"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Role Removed</div>
+                            <small class="text-muted">Mike Rodriguez from Project Manager</small>
+                            <div class="text-muted small">By John Anderson • 2 days ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Role Modal -->
+<div class="modal fade" id="createRoleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Custom Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createRoleForm">
+                    <div class="mb-3">
+                        <label class="form-label">Role Name</label>
+                        <input type="text" class="form-control" placeholder="Enter role name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role Description</label>
+                        <textarea class="form-control" rows="3" placeholder="Describe the role's purpose and responsibilities..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Permissions</label>
+                        <div class="permissions-section">
+                            <h6 class="small fw-semibold mb-2">Portfolio Access</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="view-portfolio">
+                                <label class="form-check-label" for="view-portfolio">View Portfolio</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="edit-portfolio">
+                                <label class="form-check-label" for="edit-portfolio">Edit Portfolio</label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="manage-portfolio">
+                                <label class="form-check-label" for="manage-portfolio">Manage Portfolio</label>
+                            </div>
+
+                            <h6 class="small fw-semibold mb-2">User Management</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="view-users">
+                                <label class="form-check-label" for="view-users">View Users</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="invite-users">
+                                <label class="form-check-label" for="invite-users">Invite Users</label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="manage-users">
+                                <label class="form-check-label" for="manage-users">Manage Users</label>
+                            </div>
+
+                            <h6 class="small fw-semibold mb-2">Financial Access</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="view-financials">
+                                <label class="form-check-label" for="view-financials">View Financials</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="edit-financials">
+                                <label class="form-check-label" for="edit-financials">Edit Financials</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createRoleBtn">
+                    <i class="bi bi-check-circle me-1"></i>Create Role
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .role-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #e9ecef !important;
+    }
+
+    .role-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .custom-role-item {
+        transition: all 0.2s ease;
+    }
+
+    .custom-role-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .permissions-section h6 {
+        color: var(--color-nest-green);
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 0.5rem;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--color-nest-green);
+        border-color: var(--color-nest-green);
+    }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create role functionality
+        document.getElementById('createRoleBtn').addEventListener('click', function() {
+            const form = document.getElementById('createRoleForm');
+            const roleName = form.querySelector('input[type="text"]').value;
+            
+            if (!roleName) {
+                alert('Please enter a role name.');
+                return;
+            }
+            
+            // Show loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Creating...';
+            this.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createRoleModal'));
+                modal.hide();
+                
+                // Show success message
+                alert(`Role "${roleName}" created successfully!`);
+                
+                // Reset form
+                form.reset();
+            }, 1500);
+        });
+
+        // Permission dependency logic
+        const permissionCheckboxes = document.querySelectorAll('.form-check-input');
+        permissionCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Example: If "Manage Portfolio" is checked, auto-check "Edit Portfolio" and "View Portfolio"
+                if (this.id === 'manage-portfolio' && this.checked) {
+                    document.getElementById('edit-portfolio').checked = true;
+                    document.getElementById('view-portfolio').checked = true;
+                }
+                
+                // Example: If "Edit Portfolio" is unchecked, uncheck "Manage Portfolio"
+                if (this.id === 'edit-portfolio' && !this.checked) {
+                    document.getElementById('manage-portfolio').checked = false;
+                }
+                
+                // Example: If "View Portfolio" is unchecked, uncheck both edit and manage
+                if (this.id === 'view-portfolio' && !this.checked) {
+                    document.getElementById('edit-portfolio').checked = false;
+                    document.getElementById('manage-portfolio').checked = false;
+                }
+            });
+        });
+
+        // Delete role confirmation
+        document.querySelectorAll('.dropdown-item.text-danger').forEach(item => {
+            item.addEventListener('click', function() {
+                const roleName = this.closest('.custom-role-item').querySelector('h6').textContent;
+                if (confirm(`Are you sure you want to delete the "${roleName}" role? This action cannot be undone.`)) {
+                    // In a real app, this would delete the role
+                    this.closest('.custom-role-item').remove();
+                    alert(`Role "${roleName}" has been deleted.`);
+                }
+            });
+        });
+
+        // Quick action animations
+        document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-1px)';
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+/* ===============================
+   VentureNest - Brand Styles
+   =============================== */
+
+/* ===== Colors ===== */
+:root {
+  --color-nest-green: #2E7D32;
+  --color-forest-dark: #1B5E20;
+  --color-warm-earth: #8D6E63;
+  --color-light-beige: #F5F5DC;
+  --color-golden-glow: #FFC107;
+  --color-sky-blue: #42A5F5;
+
+  --color-dark-charcoal: #333333;
+  --color-medium-grey: #757575;
+  --color-light-grey: #E0E0E0;
+  --color-white: #FFFFFF;
+}
+
+/* ===== Typography ===== */
+body {
+  font-family: 'Open Sans', Arial, sans-serif;
+  font-size: 16px;
+  color: var(--color-dark-charcoal);
+  background-color: var(--color-light-beige);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  color: var(--color-forest-dark);
+  margin-bottom: 0.75rem;
+}
+
+p, li, span {
+  font-family: 'Open Sans', sans-serif;
+  color: var(--color-dark-charcoal);
+}
+
+/* ===== Navbar ===== */
+.navbar {
+  background-color: var(--color-forest-dark) !important;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+}
+
+.navbar .nav-link {
+  color: var(--color-white) !important;
+  margin-right: 1rem;
+  transition: color 0.3s ease;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: var(--color-golden-glow) !important;
+  border-bottom: 2px solid var(--color-golden-glow);
+}
+
+/* ===== Buttons ===== */
+.btn-primary {
+  background-color: var(--color-nest-green);
+  border-color: var(--color-nest-green);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-forest-dark);
+  border-color: var(--color-forest-dark);
+}
+
+.btn-secondary {
+  background-color: var(--color-warm-earth);
+  border-color: var(--color-warm-earth);
+  color: var(--color-white);
+  border-radius: 0.75rem;
+}
+
+.btn-accent {
+  background-color: var(--color-golden-glow);
+  border-color: var(--color-golden-glow);
+  color: var(--color-dark-charcoal);
+  font-weight: 600;
+  border-radius: 0.75rem;
+}
+
+/* ===== Cards ===== */
+.card {
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.card-header {
+  background-color: var(--color-nest-green);
+  color: var(--color-white);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.card-body {
+  background-color: var(--color-white);
+}
+
+/* ===== Forms ===== */
+.form-control {
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-light-grey);
+  padding: 0.6rem;
+}
+
+.form-control:focus {
+  border-color: var(--color-nest-green);
+  box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+}
+
+/* ===== Dashboard Widgets ===== */
+.dashboard-card {
+  background: var(--color-white);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-3px);
+}
+
+/* ===== Utility Classes ===== */
+.text-accent {
+  color: var(--color-golden-glow) !important;
+}
+
+.bg-beige {
+  background-color: var(--color-light-beige) !important;
+}
+
+.bg-earth {
+  background-color: var(--color-warm-earth) !important;
+}
+
+.bg-nest {
+  background-color: var(--color-nest-green) !important;
+  color: var(--color-white);
+}

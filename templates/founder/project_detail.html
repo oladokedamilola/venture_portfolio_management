@@ -1,0 +1,197 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">{{ project.name }}</h1>
+            <p class="text-muted">{{ project.startup.name }}</p>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'founder_projects' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Projects
+            </a>
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Edit Project
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Project Overview -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Project Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <strong>Description:</strong>
+                            <p class="mt-2">{{ project.description }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Status:</strong>
+                                    <br>
+                                    <span class="badge 
+                                        {% if project.status == 'completed' %}bg-success
+                                        {% elif project.status == 'in_progress' %}bg-primary
+                                        {% elif project.status == 'on_hold' %}bg-warning
+                                        {% else %}bg-secondary{% endif %} mt-1">
+                                        {{ project.get_status_display }}
+                                    </span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Priority:</strong>
+                                    <br>
+                                    <span class="badge 
+                                        {% if project.priority == 'high' %}bg-danger
+                                        {% elif project.priority == 'medium' %}bg-warning
+                                        {% else %}bg-info{% endif %} mt-1">
+                                        {{ project.get_priority_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <strong>Start Date:</strong>
+                                    <br>
+                                    <span class="text-muted">{{ project.start_date|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Due Date:</strong>
+                                    <br>
+                                    {% if project.due_date %}
+                                        <span class="{% if project.is_overdue %}text-danger{% else %}text-muted{% endif %}">
+                                            {{ project.due_date|date:"M d, Y" }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong>Progress</strong>
+                            <span>{{ project.progress }}%</span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ project.progress }}%;" 
+                                 aria-valuenow="{{ project.progress }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Section -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Tasks</h5>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Task
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% for task in project.tasks.all %}
+                    <div class="task-item border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ task.title }}</h6>
+                                <p class="text-muted small mb-2">{{ task.description }}</p>
+                                <div class="d-flex gap-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user me-1"></i>{{ task.assigned_to.get_full_name }}
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>{{ task.due_date|date:"M d, Y" }}
+                                    </small>
+                                    <span class="badge 
+                                        {% if task.status == 'completed' %}bg-success
+                                        {% elif task.status == 'in_progress' %}bg-primary
+                                        {% elif task.status == 'review' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ task.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-tasks fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No tasks yet. Add your first task to get started.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Team Members -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Team Members</h6>
+                </div>
+                <div class="card-body">
+                    {% for member in project.team_members.all %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar bg-primary text-white rounded-circle me-3" 
+                             style="width: 40px; height: 40px; line-height: 40px; text-align: center;">
+                            {{ member.first_name|first }}{{ member.last_name|first }}
+                        </div>
+                        <div>
+                            <strong>{{ member.get_full_name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ member.role|default:"Team Member" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No team members assigned</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Project Metrics -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Project Metrics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="metric-item mb-3">
+                        <small class="text-muted">Total Tasks</small>
+                        <h5 class="mb-0">{{ project.tasks.count }}</h5>
+                    </div>
+                    <div class="metric-item mb-3">
+                        <small class="text-muted">Completed Tasks</small>
+                        <h5 class="mb-0">{{ project.completed_tasks.count }}</h5>
+                    </div>
+                    <div class="metric-item mb-3">
+                        <small class="text-muted">Days Remaining</small>
+                        <h5 class="mb-0 {% if project.days_remaining < 7 %}text-danger{% endif %}">
+                            {{ project.days_remaining|default:"N/A" }}
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,263 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Projects Overview</h1>
+            <p class="text-muted">Projects you're involved in</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary" onclick="filterProjects('all')">All</button>
+            <button class="btn btn-outline-primary" onclick="filterProjects('in_progress')">Active</button>
+            <button class="btn btn-outline-success" onclick="filterProjects('completed')">Completed</button>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="row" id="projectsContainer">
+        {% for project in projects %}
+        <div class="col-xl-4 col-lg-6 mb-4 project-card" data-status="{{ project.status }}">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ project.name }}</h5>
+                    <span class="badge 
+                        {% if project.status == 'completed' %}bg-success
+                        {% elif project.status == 'in_progress' %}bg-primary
+                        {% elif project.status == 'on_hold' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                        {{ project.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Startup:</strong>
+                        <p class="text-nest-green mb-1">{{ project.startup.name }}</p>
+                    </div>
+
+                    <p class="text-muted small mb-3">{{ project.description|truncatewords:30 }}</p>
+
+                    <!-- Progress -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Progress</small>
+                            <small class="text-muted">{{ project.progress }}%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ project.progress }}%;" 
+                                 aria-valuenow="{{ project.progress }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <small class="text-muted">My Tasks</small>
+                            <h6 class="mb-0">{{ project.my_tasks_count }}</h6>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Completed</small>
+                            <h6 class="mb-0 text-success">{{ project.my_completed_tasks_count }}</h6>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Due Soon</small>
+                            <h6 class="mb-0 text-warning">{{ project.my_due_soon_tasks_count }}</h6>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="mb-3">
+                        <small class="text-muted">Timeline</small>
+                        <div class="d-flex justify-content-between">
+                            <small>
+                                <i class="fas fa-play text-success me-1"></i>
+                                {{ project.start_date|date:"M d" }}
+                            </small>
+                            {% if project.due_date %}
+                            <small>
+                                <i class="fas fa-flag-checkered text-danger me-1"></i>
+                                {{ project.due_date|date:"M d" }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Team -->
+                    <div class="mb-3">
+                        <small class="text-muted">Team</small>
+                        <div class="avatar-group mt-1">
+                            {% for member in project.team_members.all|slice:":4" %}
+                                <span class="avatar avatar-sm bg-primary text-white rounded-circle" 
+                                      data-bs-toggle="tooltip" title="{{ member.get_full_name }}">
+                                    {{ member.first_name|first }}{{ member.last_name|first }}
+                                </span>
+                            {% endfor %}
+                            {% if project.team_members.count > 4 %}
+                                <span class="avatar avatar-sm bg-light text-muted rounded-circle">
+                                    +{{ project.team_members.count|add:"-4" }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-tasks me-1"></i>View Tasks
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                <h5>No projects assigned</h5>
+                <p class="text-muted">You're not currently assigned to any projects.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Project Statistics -->
+    <div class="row mt-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">My Project Contributions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Startup</th>
+                                    <th>My Tasks</th>
+                                    <th>Completed</th>
+                                    <th>Completion Rate</th>
+                                    <th>Avg. Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in project_stats %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ stat.project.name }}</strong>
+                                    </td>
+                                    <td>{{ stat.project.startup.name }}</td>
+                                    <td>{{ stat.total_tasks }}</td>
+                                    <td>{{ stat.completed_tasks }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                                <div class="progress-bar" 
+                                                     style="width: {{ stat.completion_rate }}%;"></div>
+                                            </div>
+                                            <small>{{ stat.completion_rate }}%</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ stat.avg_completion_time|default:"-" }} days</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Performance Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <canvas id="performanceChart" width="120" height="120"></canvas>
+                            <div class="position-absolute top-50 start-50 translate-middle">
+                                <h4 class="mb-0">{{ overall_completion_rate }}%</h4>
+                                <small class="text-muted">Completion</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Total Tasks Assigned</small>
+                        <h5 class="mb-0">{{ total_assigned_tasks }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Tasks Completed</small>
+                        <h5 class="mb-0 text-success">{{ total_completed_tasks }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">On Time Completion</small>
+                        <h5 class="mb-0 text-info">{{ on_time_completion_rate }}%</h5>
+                    </div>
+                    <div>
+                        <small class="text-muted">Active Projects</small>
+                        <h5 class="mb-0">{{ active_projects_count }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterProjects(status) {
+    const cards = document.querySelectorAll('.project-card');
+    cards.forEach(card => {
+        if (status === 'all' || card.dataset.status === status) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Initialize performance chart
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    const completionRate = {{ overall_completion_rate }};
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [completionRate, 100 - completionRate],
+                backgroundColor: ['var(--color-nest-green)', 'var(--color-light-grey)'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            cutout: '70%',
+            responsive: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: false
+                }
+            }
+        }
+    });
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

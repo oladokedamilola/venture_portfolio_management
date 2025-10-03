@@ -1,0 +1,231 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Investment Portfolio</h1>
+            <p class="text-muted">Your complete startup investment portfolio</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary" onclick="filterPortfolio('all')">All</button>
+            <button class="btn btn-outline-primary" onclick="filterPortfolio('active')">Active</button>
+            <button class="btn btn-outline-success" onclick="filterPortfolio('exited')">Exited</button>
+        </div>
+    </div>
+
+    <!-- Portfolio Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 border-end">
+                            <h4 class="text-nest-green">${{ total_invested|floatformat:0|intcomma }}</h4>
+                            <small class="text-muted">Total Invested</small>
+                        </div>
+                        <div class="col-md-3 border-end">
+                            <h4 class="text-success">${{ current_value|floatformat:0|intcomma }}</h4>
+                            <small class="text-muted">Current Value</small>
+                        </div>
+                        <div class="col-md-3 border-end">
+                            <h4 class="{% if total_return >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                ${{ total_return|floatformat:0|intcomma }}
+                            </h4>
+                            <small class="text-muted">Total Return</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="{% if overall_roi >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ overall_roi }}%
+                            </h4>
+                            <small class="text-muted">Overall ROI</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Grid -->
+    <div class="row" id="portfolioContainer">
+        {% for startup in portfolio_startups %}
+        <div class="col-xl-4 col-lg-6 mb-4 portfolio-item" data-status="{{ startup.investment_status }}">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ startup.name }}</h5>
+                    <span class="badge 
+                        {% if startup.investment_status == 'active' %}bg-success
+                        {% elif startup.investment_status == 'exited' %}bg-info
+                        {% else %}bg-warning{% endif %}">
+                        {{ startup.get_investment_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Startup Basic Info -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if startup.logo %}
+                            <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" 
+                                 class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                            {% endif %}
+                            <div>
+                                <strong class="d-block">{{ startup.industry|title }}</strong>
+                                <small class="text-muted">Founded {{ startup.founding_date|date:"Y" }}</small>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-3">{{ startup.description|truncatewords:25 }}</p>
+                    </div>
+
+                    <!-- Investment Details -->
+                    <div class="mb-3">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-muted">Investment</small>
+                                <h6 class="mb-0">${{ startup.total_invested|floatformat:0|intcomma }}</h6>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">Current Value</small>
+                                <h6 class="mb-0">${{ startup.current_valuation|floatformat:0|intcomma }}</h6>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">ROI</small>
+                                <h6 class="mb-0 {% if startup.roi >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    {{ startup.roi }}%
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Metrics -->
+                    <div class="mb-3">
+                        <small class="text-muted">Progress & Milestones</small>
+                        <div class="mt-2">
+                            {% for milestone in startup.recent_milestones %}
+                            <span class="badge bg-light text-dark me-1 mb-1">{{ milestone }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="row small text-center">
+                        <div class="col-4">
+                            <strong>{{ startup.team_size }}</strong>
+                            <br>
+                            <small class="text-muted">Team</small>
+                        </div>
+                        <div class="col-4">
+                            <strong>${{ startup.monthly_revenue|floatformat:0|intcomma }}</strong>
+                            <br>
+                            <small class="text-muted">MRR</small>
+                        </div>
+                        <div class="col-4">
+                            <strong>{{ startup.funding_round }}</strong>
+                            <br>
+                            <small class="text-muted">Round</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'investor_startup_detail' startup.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-chart-line me-1"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <i class="fas fa-rocket fa-3x text-muted mb-3"></i>
+                <h5>No investments yet</h5>
+                <p class="text-muted">Your investment portfolio will appear here once you make investments.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Performance Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Portfolio Performance</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Startup</th>
+                            <th>Industry</th>
+                            <th>Investment Date</th>
+                            <th>Amount</th>
+                            <th>Current Value</th>
+                            <th>ROI</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in portfolio_performance %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if item.startup.logo %}
+                                    <img src="{{ item.startup.logo.url }}" alt="{{ item.startup.name }} logo" 
+                                         class="rounded me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                    {% endif %}
+                                    <strong>{{ item.startup.name }}</strong>
+                                </div>
+                            </td>
+                            <td>{{ item.startup.industry|title }}</td>
+                            <td>{{ item.investment_date|date:"M d, Y" }}</td>
+                            <td>${{ item.amount|floatformat:0|intcomma }}</td>
+                            <td>${{ item.current_value|floatformat:0|intcomma }}</td>
+                            <td>
+                                <span class="badge {% if item.roi >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ item.roi }}%
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if item.status == 'active' %}bg-success
+                                    {% elif item.status == 'exited' %}bg-info
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ item.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'investor_startup_detail' item.startup.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterPortfolio(status) {
+    const items = document.querySelectorAll('.portfolio-item');
+    items.forEach(item => {
+        if (status === 'all' || item.dataset.status === status) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VentureNest{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+    <style>
+        /* Enhanced Sidebar Styles */
+        aside#sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--color-forest-dark) 0%, var(--color-nest-green) 100%);
+            color: var(--color-white);
+            transition: left 0.3s ease;
+            z-index: 1040;
+            overflow-y: auto;
+            padding-top: 1rem;
+            font-family: 'Nunito', sans-serif;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+
+        aside#sidebar.active {
+            left: 0;
+        }
+
+        /* User Profile Section */
+        .sidebar-profile {
+            padding: 1.5rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--color-golden-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: var(--color-dark-charcoal);
+            font-weight: bold;
+        }
+
+        .user-info h5 {
+            margin: 0;
+            font-weight: 700;
+            color: var(--color-white);
+        }
+
+        .user-role {
+            font-size: 0.85rem;
+            color: var(--color-light-grey);
+            text-transform: capitalize;
+        }
+
+        /* Navigation Styles */
+        .sidebar-nav {
+            padding: 0 1rem;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--color-golden-glow);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            padding: 0 0.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            color: var(--color-white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.15);
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background-color: var(--color-golden-glow);
+            color: var(--color-dark-charcoal);
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(255,193,7,0.3);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--color-sky-blue);
+            color: white;
+            border-radius: 10px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        /* Logout Link */
+        .logout-section {
+            margin-top: auto;
+            padding: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logout-link {
+            color: var(--color-white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            background: rgba(198, 40, 40, 0.2);
+        }
+
+        .logout-link:hover {
+            background: #C62828;
+            transform: translateX(5px);
+        }
+
+        /* Overlay and Toggle */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1030;
+        }
+
+        #sidebarToggle, #sidebarClose {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1050;
+            background: var(--color-white);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        #sidebarToggle:hover, #sidebarClose:hover {
+            transform: scale(1.1);
+        }
+
+        #sidebarClose {
+            left: auto;
+            right: 1rem;
+            display: none;
+            background: var(--color-golden-glow);
+        }
+
+        /* Main Content */
+        #content {
+            margin-left: 0;
+            padding: 1.5rem;
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+            background-color: var(--color-light-beige);
+        }
+
+        .content-with-sidebar {
+            margin-left: 280px;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: var(--color-white);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-left: 4px solid var(--color-nest-green);
+        }
+
+        /* Responsive */
+        @media (min-width: 992px) {
+            aside#sidebar {
+                left: 0;
+            }
+            #content {
+                margin-left: 280px;
+            }
+            #sidebarToggle {
+                display: none;
+            }
+        }
+
+        @media (max-width: 991px) {
+            aside#sidebar {
+                width: 85%;
+                left: -85%;
+            }
+            .content-with-sidebar {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Flash Messages -->
+    <div id="flash-messages" class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1050;">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mx-auto text-center" role="alert" style="min-width: 300px; max-width: 450px;">
+                    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Sidebar Toggle Buttons -->
+    <span id="sidebarToggle"><i class="bi bi-list"></i></span>
+    <span id="sidebarClose"><i class="bi bi-x"></i></span>
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <!-- User Profile -->
+        <div class="sidebar-profile">
+            <div class="user-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="user-info">
+                <h5>{{ user.get_full_name|default:user.username }}</h5>
+                <div class="user-role">
+                    {% if user.is_venture_manager %}Venture Manager
+                    {% elif user.is_founder %}Founder
+                    {% elif user.is_team_member %}Team Member
+                    {% elif user.is_investor %}Investor
+                    {% else %}User{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            {% if user.is_authenticated %}
+                <!-- Dashboard -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <div class="nav-item">
+                        <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+                            <i class="bi bi-speedometer2 nav-icon"></i>
+                            Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Role-specific Navigation -->
+                {% if user.is_venture_manager %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Portfolio Management</div>
+                    <div class="nav-item">
+                        <a href="{% url 'manager:startup_list' %}" class="nav-link {% if 'manager/startups' in request.path %}active{% endif %}">
+                            <i class="bi bi-building nav-icon"></i>
+                            All Startups
+                            <span class="nav-badge">{{ user.managed_startups.count }}</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'manager:projects' %}" class="nav-link {% if 'manager/projects' in request.path %}active{% endif %}">
+                            <i class="bi bi-kanban nav-icon"></i>
+                            Projects & Tasks
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'manager:funding_rounds' %}" class="nav-link {% if 'manager/funding' in request.path %}active{% endif %}">
+                            <i class="bi bi-graph-up nav-icon"></i>
+                            Funding Rounds
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'manager:reports' %}" class="nav-link {% if 'manager/reports' in request.path %}active{% endif %}">
+                            <i class="bi bi-bar-chart nav-icon"></i>
+                            Analytics & Reports
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.is_founder %}
+                <div class="nav-section">
+                    <div class="nav-section-title">My Startup</div>
+                    <div class="nav-item">
+                        <a href="{% url 'founder:startups' %}" class="nav-link {% if 'founder/startups' in request.path %}active{% endif %}">
+                            <i class="bi bi-building nav-icon"></i>
+                            My Startups
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'founder:projects' %}" class="nav-link {% if 'founder/projects' in request.path %}active{% endif %}">
+                            <i class="bi bi-kanban nav-icon"></i>
+                            Projects
+                            <span class="nav-badge">{{ user.active_projects.count }}</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'founder:funding_rounds' %}" class="nav-link {% if 'founder/funding' in request.path %}active{% endif %}">
+                            <i class="bi bi-cash-stack nav-icon"></i>
+                            Funding Applications
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.is_team_member %}
+                <div class="nav-section">
+                    <div class="nav-section-title">My Work</div>
+                    <div class="nav-item">
+                        <a href="{% url 'team:tasks' %}" class="nav-link {% if 'team/tasks' in request.path %}active{% endif %}">
+                            <i class="bi bi-list-task nav-icon"></i>
+                            My Tasks
+                            <span class="nav-badge">{{ user.assigned_tasks.count }}</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'team:projects' %}" class="nav-link {% if 'team/projects' in request.path %}active{% endif %}">
+                            <i class="bi bi-kanban nav-icon"></i>
+                            Project Overview
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.is_investor %}
+                <div class="nav-section">
+                    <div class="nav-section-title">Portfolio</div>
+                    <div class="nav-item">
+                        <a href="{% url 'investor:portfolio' %}" class="nav-link {% if 'investor/portfolio' in request.path %}active{% endif %}">
+                            <i class="bi bi-building nav-icon"></i>
+                            Portfolio Companies
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'investor:funding_history' %}" class="nav-link {% if 'investor/funding' in request.path %}active{% endif %}">
+                            <i class="bi bi-graph-up nav-icon"></i>
+                            Funding History
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'investor:reports' %}" class="nav-link {% if 'investor/reports' in request.path %}active{% endif %}">
+                            <i class="bi bi-bar-chart nav-icon"></i>
+                            Performance Reports
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Shared User Menu -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <div class="nav-item">
+                        <a href="{% url 'profile' %}" class="nav-link {% if 'profile' in request.path %}active{% endif %}">
+                            <i class="bi bi-person nav-icon"></i>
+                            My Profile
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'notifications' %}" class="nav-link {% if 'notifications' in request.path %}active{% endif %}">
+                            <i class="bi bi-bell nav-icon"></i>
+                            Notifications
+                            <span class="nav-badge">{{ user.unread_notifications.count }}</span>
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="{% url 'messages' %}" class="nav-link {% if 'messages' in request.path %}active{% endif %}">
+                            <i class="bi bi-chat-left nav-icon"></i>
+                            Messages
+                            <span class="nav-badge">{{ user.unread_messages.count }}</span>
+                        </a>
+                    </div>
+                </div>
+
+            {% endif %}
+        </nav>
+
+        <!-- Logout Section -->
+        <div class="logout-section">
+            <a href="{% url 'logout' %}" class="logout-link">
+                <i class="bi bi-box-arrow-right nav-icon"></i>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile -->
+    <div id="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <main id="content" class="{% if not request.user_agent.is_mobile %}content-with-sidebar{% endif %}">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p class="text-muted mb-0">{% block page_subtitle %}Welcome back! Here's what's happening today.{% endblock %}</p>
+                </div>
+                <div class="btn-toolbar">
+                    {% block page_actions %}
+                    <!-- Action buttons can be added here -->
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Block -->
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% block footer %}
+    <footer class="footer mt-5 py-4 bg-nest text-light">
+        <div class="container text-center">
+            <small>&copy; {% now "Y" %} VentureNest. Venture Portfolio Management Platform. All rights reserved.</small>
+        </div>
+    </footer>
+    {% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Enhanced Sidebar Functionality
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarClose = document.getElementById('sidebarClose');
+        const content = document.getElementById('content');
+
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.style.display = 'block';
+            sidebarToggle.style.display = 'none';
+            sidebarClose.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.style.display = 'none';
+            sidebarToggle.style.display = 'flex';
+            sidebarClose.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Event Listeners
+        sidebarToggle.addEventListener('click', openSidebar);
+        sidebarClose.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        // Auto-close sidebar on mobile when clicking nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        // Flash Messages Auto-dismiss
+        window.addEventListener('DOMContentLoaded', () => {
+            const alerts = document.querySelectorAll('#flash-messages .alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }, 8000);
+            });
+
+            // Add smooth transitions
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.style.transition = 'all 0.3s ease';
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 992) {
+                sidebar.classList.add('active');
+                overlay.style.display = 'none';
+                sidebarToggle.style.display = 'none';
+                sidebarClose.style.display = 'none';
+            } else {
+                sidebar.classList.remove('active');
+                overlay.style.display = 'none';
+                sidebarToggle.style.display = 'flex';
+                sidebarClose.style.display = 'none';
+            }
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

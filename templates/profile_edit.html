@@ -1,0 +1,269 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - VentureNest{% endblock %}
+
+{% block page_title %}Edit Profile{% endblock %}
+{% block page_subtitle %}Update your personal information and preferences{% endblock %}
+
+{% block user_content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-gear text-nest me-2"></i>Personal Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Profile Picture -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            <div class="profile-picture-container mb-3">
+                                <img src="{{ user.profile.image.url|default:'/static/images/default-avatar.png' }}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle shadow-sm" 
+                                     id="profile-preview"
+                                     style="width: 120px; height: 120px; object-fit: cover;">
+                                <div class="mt-3">
+                                    <input type="file" 
+                                           name="image" 
+                                           id="id_image" 
+                                           class="form-control form-control-sm d-none" 
+                                           accept="image/*">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('id_image').click()">
+                                        <i class="bi bi-camera me-1"></i>Change Photo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <!-- Username -->
+                            <div class="mb-3">
+                                <label for="id_username" class="form-label fw-semibold">Username</label>
+                                <input type="text" 
+                                       name="username" 
+                                       id="id_username" 
+                                       class="form-control" 
+                                       value="{{ form.username.value|default:user.username }}"
+                                       required>
+                                {% if form.username.errors %}
+                                <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Email -->
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label fw-semibold">Email Address</label>
+                                <input type="email" 
+                                       name="email" 
+                                       id="id_email" 
+                                       class="form-control" 
+                                       value="{{ form.email.value|default:user.email }}"
+                                       required>
+                                {% if form.email.errors %}
+                                <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_first_name" class="form-label fw-semibold">First Name</label>
+                                <input type="text" 
+                                       name="first_name" 
+                                       id="id_first_name" 
+                                       class="form-control" 
+                                       value="{{ form.first_name.value|default:user.first_name }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_last_name" class="form-label fw-semibold">Last Name</label>
+                                <input type="text" 
+                                       name="last_name" 
+                                       id="id_last_name" 
+                                       class="form-control" 
+                                       value="{{ form.last_name.value|default:user.last_name }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bio -->
+                    <div class="mb-4">
+                        <label for="id_bio" class="form-label fw-semibold">Bio</label>
+                        <textarea name="bio" 
+                                  id="id_bio" 
+                                  class="form-control" 
+                                  rows="4" 
+                                  placeholder="Tell us about yourself...">{{ form.bio.value|default:user.profile.bio }}</textarea>
+                        <div class="form-text">Brief description about yourself and your role.</div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_phone" class="form-label fw-semibold">Phone Number</label>
+                                <input type="tel" 
+                                       name="phone" 
+                                       id="id_phone" 
+                                       class="form-control" 
+                                       value="{{ form.phone.value|default:user.profile.phone }}"
+                                       placeholder="+1 (555) 123-4567">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_linkedin" class="form-label fw-semibold">LinkedIn Profile</label>
+                                <input type="url" 
+                                       name="linkedin" 
+                                       id="id_linkedin" 
+                                       class="form-control" 
+                                       value="{{ form.linkedin.value|default:user.profile.linkedin }}"
+                                       placeholder="https://linkedin.com/in/yourprofile">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Preferences -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Notification Preferences</label>
+                        <div class="form-check">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   name="email_notifications" 
+                                   id="id_email_notifications"
+                                   {% if user.profile.email_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="id_email_notifications">
+                                Email notifications
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   name="push_notifications" 
+                                   id="id_push_notifications"
+                                   {% if user.profile.push_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="id_push_notifications">
+                                Push notifications
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% url 'profile' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar - Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-shield-check text-nest me-2"></i>Account Security
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'change_password' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-key me-1"></i>Change Password
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary">
+                        <i class="bi bi-lock me-1"></i>Two-Factor Authentication
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Completion -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-graph-up text-nest me-2"></i>Profile Completion
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3" style="height: 8px;">
+                    <div class="progress-bar bg-success" style="width: 75%"></div>
+                </div>
+                <small class="text-muted">
+                    Your profile is 75% complete. Add more details to improve your visibility.
+                </small>
+                <ul class="list-unstyled small mt-2">
+                    <li class="mb-1">
+                        <i class="bi bi-check-circle text-success me-1"></i>Basic information
+                    </li>
+                    <li class="mb-1">
+                        <i class="bi bi-check-circle text-success me-1"></i>Contact details
+                    </li>
+                    <li class="mb-1">
+                        <i class="bi bi-x-circle text-muted me-1"></i>Profile picture
+                    </li>
+                    <li class="mb-1">
+                        <i class="bi bi-x-circle text-muted me-1"></i>Professional bio
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-picture-container {
+        position: relative;
+    }
+
+    .profile-picture-container:hover img {
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--color-nest-green);
+        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.1);
+    }
+
+    .progress {
+        background-color: #e9ecef;
+    }
+</style>
+
+<script>
+    // Profile picture preview
+    document.getElementById('id_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const username = document.getElementById('id_username').value.trim();
+        const email = document.getElementById('id_email').value.trim();
+        
+        if (!username || !email) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+</script>
+{% endblock %}
