@@ -16,6 +16,7 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/x-icon">
 
     <style>
         /* Enhanced Sidebar Styles */
@@ -133,6 +134,11 @@
             border-radius: 10px;
             padding: 0.1rem 0.5rem;
             font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .nav-badge-danger {
+            background: #dc3545;
         }
 
         /* Logout Link */
@@ -244,6 +250,25 @@
                 margin-left: 0;
             }
         }
+
+        /* Notification Bell Animation */
+        @keyframes bell-ring {
+            0% { transform: rotate(0); }
+            10% { transform: rotate(15deg); }
+            20% { transform: rotate(-15deg); }
+            30% { transform: rotate(10deg); }
+            40% { transform: rotate(-10deg); }
+            50% { transform: rotate(5deg); }
+            60% { transform: rotate(-5deg); }
+            70% { transform: rotate(2deg); }
+            80% { transform: rotate(-2deg); }
+            90% { transform: rotate(1deg); }
+            100% { transform: rotate(0); }
+        }
+
+        .bell-ringing {
+            animation: bell-ring 1s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -267,22 +292,32 @@
 
     <!-- Sidebar -->
     <aside id="sidebar">
-        <!-- User Profile -->
-        <div class="sidebar-profile">
-            <div class="user-avatar">
+<!-- User Profile -->
+<div class="sidebar-profile">
+    <div class="user-avatar">
+        {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" 
+                 alt="Profile Picture" 
+                 class="rounded-circle"
+                 style="width: 60px; height: 60px; object-fit: cover;">
+        {% else %}
+            <div class="rounded-circle d-flex align-items-center justify-content-center bg-nest text-white"
+                 style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;">
                 {{ user.username|first|upper }}
             </div>
-            <div class="user-info">
-                <h5>{{ user.get_full_name|default:user.username }}</h5>
-                <div class="user-role">
-                    {% if user.is_venture_manager %}Venture Manager
-                    {% elif user.is_founder %}Founder
-                    {% elif user.is_team_member %}Team Member
-                    {% elif user.is_investor %}Investor
-                    {% else %}User{% endif %}
-                </div>
-            </div>
+        {% endif %}
+    </div>
+    <div class="user-info">
+        <h5>{{ user.get_full_name|default:user.username }}</h5>
+        <div class="user-role">
+            {% if user.role|lower == 'manager' %}Venture Manager
+            {% elif user.role|lower == 'founder' %}Founder
+            {% elif user.role|lower == 'team_member' %}Team Member
+            {% elif user.role|lower == 'investor' %}Investor
+            {% else %}User{% endif %}
         </div>
+    </div>
+</div>
 
         <!-- Navigation -->
         <nav class="sidebar-nav">
@@ -291,7 +326,7 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Overview</div>
                     <div class="nav-item">
-                        <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+                        <a href="{% url 'dashboard_redirect' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
                             <i class="bi bi-speedometer2 nav-icon"></i>
                             Dashboard
                         </a>
@@ -299,30 +334,29 @@
                 </div>
 
                 <!-- Role-specific Navigation -->
-                {% if user.is_venture_manager %}
+                {% if user.role == 'manager' %}
                 <div class="nav-section">
                     <div class="nav-section-title">Portfolio Management</div>
                     <div class="nav-item">
-                        <a href="{% url 'manager:startup_list' %}" class="nav-link {% if 'manager/startups' in request.path %}active{% endif %}">
+                        <a href="{% url 'startups:manager_startup_list' %}" class="nav-link {% if 'manager/startups' in request.path %}active{% endif %}">
                             <i class="bi bi-building nav-icon"></i>
                             All Startups
-                            <span class="nav-badge">{{ user.managed_startups.count }}</span>
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a href="{% url 'manager:projects' %}" class="nav-link {% if 'manager/projects' in request.path %}active{% endif %}">
+                        <a href="{% url 'projects:manager_projects' %}" class="nav-link {% if 'manager/projects' in request.path %}active{% endif %}">
                             <i class="bi bi-kanban nav-icon"></i>
                             Projects & Tasks
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a href="{% url 'manager:funding_rounds' %}" class="nav-link {% if 'manager/funding' in request.path %}active{% endif %}">
+                        <a href="{% url 'funding:manager_funding_rounds' %}" class="nav-link {% if 'manager/funding' in request.path %}active{% endif %}">
                             <i class="bi bi-graph-up nav-icon"></i>
                             Funding Rounds
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a href="{% url 'manager:reports' %}" class="nav-link {% if 'manager/reports' in request.path %}active{% endif %}">
+                        <a href="{% url 'reports:manager_reports' %}" class="nav-link {% if 'manager/reports' in request.path %}active{% endif %}">
                             <i class="bi bi-bar-chart nav-icon"></i>
                             Analytics & Reports
                         </a>
@@ -330,24 +364,23 @@
                 </div>
                 {% endif %}
 
-                {% if user.is_founder %}
+                {% if user.role == 'founder' %}
                 <div class="nav-section">
                     <div class="nav-section-title">My Startup</div>
                     <div class="nav-item">
-                        <a href="{% url 'founder:startups' %}" class="nav-link {% if 'founder/startups' in request.path %}active{% endif %}">
+                        <a href="{% url 'startups:founder_startup_detail' user.founded_startups.first.id %}" class="nav-link {% if 'founder/startups' in request.path %}active{% endif %}">
                             <i class="bi bi-building nav-icon"></i>
-                            My Startups
+                            My Startup
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a href="{% url 'founder:projects' %}" class="nav-link {% if 'founder/projects' in request.path %}active{% endif %}">
+                        <a href="{% url 'projects:founder_projects' %}" class="nav-link {% if 'founder/projects' in request.path %}active{% endif %}">
                             <i class="bi bi-kanban nav-icon"></i>
                             Projects
-                            <span class="nav-badge">{{ user.active_projects.count }}</span>
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a href="{% url 'founder:funding_rounds' %}" class="nav-link {% if 'founder/funding' in request.path %}active{% endif %}">
+                        <a href="{% url 'funding:founder_funding_rounds' %}" class="nav-link {% if 'founder/funding' in request.path %}active{% endif %}">
                             <i class="bi bi-cash-stack nav-icon"></i>
                             Funding Applications
                         </a>
@@ -355,18 +388,17 @@
                 </div>
                 {% endif %}
 
-                {% if user.is_team_member %}
+                {% if user.role == 'team_member' %}
                 <div class="nav-section">
                     <div class="nav-section-title">My Work</div>
                     <div class="nav-item">
-                        <a href="{% url 'team:tasks' %}" class="nav-link {% if 'team/tasks' in request.path %}active{% endif %}">
+                        <a href="{% url 'tasks:team_tasks' %}" class="nav-link {% if 'team/tasks' in request.path %}active{% endif %}">
                             <i class="bi bi-list-task nav-icon"></i>
                             My Tasks
-                            <span class="nav-badge">{{ user.assigned_tasks.count }}</span>
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a href="{% url 'team:projects' %}" class="nav-link {% if 'team/projects' in request.path %}active{% endif %}">
+                        <a href="{% url 'projects:team_projects' %}" class="nav-link {% if 'team/projects' in request.path %}active{% endif %}">
                             <i class="bi bi-kanban nav-icon"></i>
                             Project Overview
                         </a>
@@ -374,23 +406,23 @@
                 </div>
                 {% endif %}
 
-                {% if user.is_investor %}
+                {% if user.role == 'investor' %}
                 <div class="nav-section">
                     <div class="nav-section-title">Portfolio</div>
                     <div class="nav-item">
-                        <a href="{% url 'investor:portfolio' %}" class="nav-link {% if 'investor/portfolio' in request.path %}active{% endif %}">
+                        <a href="{% url 'investments:investor_portfolio' %}" class="nav-link {% if 'investor/portfolio' in request.path %}active{% endif %}">
                             <i class="bi bi-building nav-icon"></i>
                             Portfolio Companies
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a href="{% url 'investor:funding_history' %}" class="nav-link {% if 'investor/funding' in request.path %}active{% endif %}">
+                        <a href="{% url 'investments:investor_funding_history' %}" class="nav-link {% if 'investor/funding' in request.path %}active{% endif %}">
                             <i class="bi bi-graph-up nav-icon"></i>
                             Funding History
                         </a>
                     </div>
                     <div class="nav-item">
-                        <a href="{% url 'investor:reports' %}" class="nav-link {% if 'investor/reports' in request.path %}active{% endif %}">
+                        <a href="{% url 'reports:investor_reports' %}" class="nav-link {% if 'investor/reports' in request.path %}active{% endif %}">
                             <i class="bi bi-bar-chart nav-icon"></i>
                             Performance Reports
                         </a>
@@ -409,18 +441,18 @@
                     </div>
                     <div class="nav-item">
                         <a href="{% url 'notifications' %}" class="nav-link {% if 'notifications' in request.path %}active{% endif %}">
-                            <i class="bi bi-bell nav-icon"></i>
+                            <i class="bi bi-bell nav-icon" id="notificationBellIcon"></i>
                             Notifications
-                            <span class="nav-badge">{{ user.unread_notifications.count }}</span>
+                            <span class="nav-badge nav-badge-danger" id="notificationBadge" style="display: none;">0</span>
                         </a>
                     </div>
-                    <div class="nav-item">
+                    {% comment %} <div class="nav-item">
                         <a href="{% url 'messages' %}" class="nav-link {% if 'messages' in request.path %}active{% endif %}">
                             <i class="bi bi-chat-left nav-icon"></i>
                             Messages
-                            <span class="nav-badge">{{ user.unread_messages.count }}</span>
+                            <span class="nav-badge" style="display: none;">0</span>
                         </a>
-                    </div>
+                    </div> {% endcomment %}
                 </div>
 
             {% endif %}
@@ -539,6 +571,107 @@
                 sidebarToggle.style.display = 'flex';
                 sidebarClose.style.display = 'none';
             }
+        });
+
+        // Notification System
+        document.addEventListener('DOMContentLoaded', function() {
+            const notificationBadge = document.getElementById('notificationBadge');
+            const notificationBellIcon = document.getElementById('notificationBellIcon');
+            let previousCount = 0;
+
+            // Load notification count
+            function loadNotificationCount() {
+                fetch('/communications/api/notifications/count/')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        const currentCount = data.unread_count || 0;
+                        
+                        // Update badge
+                        if (notificationBadge) {
+                            if (currentCount > 0) {
+                                notificationBadge.textContent = currentCount > 99 ? '99+' : currentCount;
+                                notificationBadge.style.display = 'block';
+                                
+                                // Animate bell if count increased
+                                if (currentCount > previousCount && notificationBellIcon) {
+                                    notificationBellIcon.classList.add('bell-ringing');
+                                    setTimeout(() => {
+                                        notificationBellIcon.classList.remove('bell-ringing');
+                                    }, 1000);
+                                }
+                            } else {
+                                notificationBadge.style.display = 'none';
+                            }
+                        }
+                        
+                        previousCount = currentCount;
+                    })
+                    .catch(error => {
+                        console.error('Error loading notification count:', error);
+                    });
+            }
+
+            // Load notification count when page loads
+            loadNotificationCount();
+
+            // Refresh notification count every 30 seconds
+            setInterval(loadNotificationCount, 30000);
+
+            // Load notifications when clicking the notification link
+            const notificationLink = document.querySelector('a[href*="notifications"]');
+            if (notificationLink) {
+                notificationLink.addEventListener('click', function() {
+                    // Mark notifications as read when user visits the page
+                    fetch('/communications/api/notifications/mark-all-read/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCSRFToken(),
+                            'Content-Type': 'application/json',
+                        }
+                    }).then(() => {
+                        // Update badge immediately
+                        if (notificationBadge) {
+                            notificationBadge.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Helper function to get CSRF token
+            function getCSRFToken() {
+                const name = 'csrftoken';
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            // Listen for new notifications via WebSocket or Server-Sent Events (optional)
+            // This would require additional setup on the backend
+            function setupNotificationListener() {
+                // Example using Server-Sent Events
+                // const eventSource = new EventSource('/communications/api/notifications/stream/');
+                // eventSource.onmessage = function(event) {
+                //     const data = JSON.parse(event.data);
+                //     if (data.type === 'new_notification') {
+                //         loadNotificationCount();
+                //     }
+                // };
+            }
+
+            // Initialize notification listener
+            setupNotificationListener();
         });
     </script>
 

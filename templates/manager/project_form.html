@@ -1,0 +1,618 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}{% if editing %}Edit{% else %}Create{% endif %} Project - VentureNest{% endblock %}
+
+{% block page_title %}{% if editing %}Edit{% else %}Create New{% endif %} Project{% endblock %}
+{% block page_subtitle %}{% if editing %}Update project details and team assignments{% else %}Add a new project to your venture portfolio{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        {% if editing %}Edit Project Details{% else %}Project Details{% endif %}
+                    </h5>
+                    {% if editing %}
+                    <span class="badge bg-{% if project.priority == 'high' %}danger{% elif project.priority == 'medium' %}warning{% else %}info{% endif %}">
+                        {{ project.get_priority_display }} Priority
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate id="projectForm">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Project Name -->
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                Project Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                Description
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Startup -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.startup.id_for_label }}" class="form-label">
+                                Startup <span class="text-danger">*</span>
+                            </label>
+                            {{ form.startup }}
+                            {% if form.startup.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.startup.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if editing %}
+                            <div class="form-text text-warning">
+                                <i class="bi bi-info-circle"></i> Startup cannot be changed after creation
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                Status
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.status.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Priority -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                Priority
+                            </label>
+                            {{ form.priority }}
+                            {% if form.priority.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.priority.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Progress -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.progress.id_for_label }}" class="form-label">
+                                Progress (%)
+                            </label>
+                            {{ form.progress }}
+                            {% if form.progress.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.progress.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Budget -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.budget.id_for_label }}" class="form-label">
+                                Budget ($)
+                            </label>
+                            {{ form.budget }}
+                            {% if form.budget.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.budget.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Start Date -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                Start Date
+                            </label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.start_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Due Date -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                Due Date
+                            </label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.due_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Team Members - Enhanced Selection -->
+                        <div class="col-md-12 mb-4">
+                            <label class="form-label">Team Members</label>
+                            
+                            <!-- Hidden original field -->
+                            {{ form.team_members }}
+                            
+                            <!-- Enhanced team selection interface -->
+                            <div class="team-selection-container">
+                                <!-- Search and Dropdown -->
+                                <div class="mb-3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="teamMemberSearch" 
+                                               placeholder="Search team members..." autocomplete="off">
+                                        <button class="btn btn-outline-secondary" type="button" id="teamMemberDropdownToggle">
+                                            <i class="bi bi-chevron-down"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Dropdown Menu -->
+                                    <div class="dropdown-menu w-100 p-2" id="teamMemberDropdown" style="display: none; max-height: 200px; overflow-y: auto;">
+                                        <div class="list-group list-group-flush">
+                                            {% for user in form.team_members.field.queryset %}
+                                            <button type="button" class="list-group-item list-group-item-action team-member-option" 
+                                                    data-user-id="{{ user.id }}" data-user-name="{{ user.get_full_name|default:user.username }}"
+                                                    data-user-email="{{ user.email }}">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm me-2">
+                                                        {% if user.avatar %}
+                                                        <img src="{{ user.avatar.url }}" alt="{{ user.get_full_name|default:user.username }}" 
+                                                             class="rounded-circle" width="24" height="24">
+                                                        {% else %}
+                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                                             style="width: 24px; height: 24px;">
+                                                            <i class="bi bi-person text-white" style="font-size: 12px;"></i>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium">{{ user.get_full_name|default:user.username }}</div>
+                                                        <small class="text-muted">{{ user.email }}</small>
+                                                    </div>
+                                                </div>
+                                            </button>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Selected Members Display -->
+                                <div class="selected-members-container">
+                                    <div class="selected-members-tags" id="selectedMembersTags">
+                                        <!-- Selected members will appear here as tags -->
+                                    </div>
+                                    <div class="text-muted small mt-2" id="noMembersMessage">
+                                        No team members selected yet. Use the search above to add team members.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if form.team_members.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.team_members.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% if editing %}{% if request.user.role == 'manager' %}{% url 'projects:manager_projects' %}{% else %}{% url 'projects:founder_project_detail' project.pk %}{% endif %}{% else %}{% if request.user.role == 'manager' %}{% url 'projects:manager_projects' %}{% else %}{% url 'projects:founder_projects' %}{% endif %}{% endif %}" 
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        <div class="d-flex gap-2">
+                            {% if editing and request.user.role in 'founder manager' %}
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi {% if editing %}bi-check-circle{% else %}bi-plus-circle{% endif %} me-1"></i>
+                                {% if editing %}Update{% else %}Create{% endif %} Project
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal (Only for editing and founders/managers) -->
+{% if editing and request.user.role in 'founder manager' %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the project "<strong>{{ project.name }}</strong>"?</p>
+                <p class="text-danger"><small>This action cannot be undone. All tasks associated with this project will also be deleted.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'projects:project_delete' project.pk %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+                        <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'projects:project_delete' project.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Project</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card {
+        border-radius: 0.5rem;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+    }
+    
+    /* Team Selection Styles */
+    .team-selection-container {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+    }
+    
+    .selected-members-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        min-height: 40px;
+    }
+    
+    .member-tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: #e9ecef;
+        border: 1px solid #dee2e6;
+        border-radius: 20px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+        gap: 0.5rem;
+    }
+    
+    .member-tag .avatar-sm {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .member-tag .remove-btn {
+        background: none;
+        border: none;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+    
+    .member-tag .remove-btn:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .team-member-option {
+        border: none;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .team-member-option:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .team-member-option.selected {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    #teamMemberDropdown {
+        z-index: 1000;
+    }
+    
+    /* Hide the original team members select */
+    #id_team_members {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap classes to form elements
+        const formElements = document.querySelectorAll('input, select, textarea');
+        formElements.forEach(element => {
+            if (!element.classList.contains('btn') && !element.classList.contains('form-check-input')) {
+                element.classList.add('form-control');
+            }
+        });
+
+        // Special handling for select elements
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            if (!select.multiple) { // Don't add form-select to multiple selects
+                select.classList.add('form-select');
+            }
+        });
+
+        // Team Members Selection Logic
+        const teamMembersSelect = document.getElementById('id_team_members');
+        const searchInput = document.getElementById('teamMemberSearch');
+        const dropdownToggle = document.getElementById('teamMemberDropdownToggle');
+        const dropdown = document.getElementById('teamMemberDropdown');
+        const selectedTagsContainer = document.getElementById('selectedMembersTags');
+        const noMembersMessage = document.getElementById('noMembersMessage');
+        const teamMemberOptions = document.querySelectorAll('.team-member-option');
+
+        let selectedMembers = new Set();
+
+        // Initialize from existing selections
+        function initializeSelectedMembers() {
+            console.log('Initializing team members selection...');
+            
+            // Clear any existing selections
+            selectedMembers.clear();
+            
+            // Get selected values from the hidden select field
+            const selectedOptions = teamMembersSelect.selectedOptions;
+            console.log('Selected options found:', selectedOptions.length);
+            
+            for (let option of selectedOptions) {
+                const userId = option.value;
+                if (userId && userId !== '') {
+                    selectedMembers.add(userId);
+                    console.log('Added user:', userId, option.textContent);
+                }
+            }
+            
+            // If no selections found in the select field but we're editing, try from project context
+            if (selectedMembers.size === 0 && {{ editing|yesno:"true,false" }} && {{ project.team_members.all|length|default:0 }} > 0) {
+                console.log('Using project context for team members');
+                {% for member in project.team_members.all %}
+                selectedMembers.add('{{ member.id }}');
+                console.log('Added from context: {{ member.id }}');
+                {% endfor %}
+            }
+            
+            updateSelectedMemberDisplay();
+        }
+
+        // Update the display of selected members
+        function updateSelectedMemberDisplay() {
+            selectedTagsContainer.innerHTML = '';
+            
+            if (selectedMembers.size === 0) {
+                noMembersMessage.style.display = 'block';
+            } else {
+                noMembersMessage.style.display = 'none';
+                
+                selectedMembers.forEach(userId => {
+                    const option = document.querySelector(`.team-member-option[data-user-id="${userId}"]`);
+                    if (option) {
+                        const userName = option.dataset.userName;
+                        const avatarHtml = option.querySelector('.avatar-sm').innerHTML;
+                        const tag = document.createElement('div');
+                        tag.className = 'member-tag';
+                        tag.innerHTML = `
+                            <div class="avatar-sm me-1">
+                                ${avatarHtml}
+                            </div>
+                            <span>${userName}</span>
+                            <button type="button" class="remove-btn" data-user-id="${userId}">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        `;
+                        selectedTagsContainer.appendChild(tag);
+                    }
+                });
+            }
+            
+            // Update the hidden select field
+            updateHiddenSelect();
+        }
+
+        // Update the hidden select field with current selections
+        function updateHiddenSelect() {
+            // Clear all selections first
+            Array.from(teamMembersSelect.options).forEach(option => {
+                option.selected = false;
+            });
+            
+            // Set selected options based on our Set
+            selectedMembers.forEach(userId => {
+                const option = teamMembersSelect.querySelector(`option[value="${userId}"]`);
+                if (option) {
+                    option.selected = true;
+                }
+            });
+        }
+
+        // Add member to selection
+        function addMember(userId, userName) {
+            if (!selectedMembers.has(userId)) {
+                selectedMembers.add(userId);
+                updateSelectedMemberDisplay();
+                searchInput.value = '';
+                hideDropdown();
+            }
+        }
+
+        // Remove member from selection
+        function removeMember(userId) {
+            selectedMembers.delete(userId);
+            updateSelectedMemberDisplay();
+        }
+
+        // Show dropdown
+        function showDropdown() {
+            dropdown.style.display = 'block';
+        }
+
+        // Hide dropdown
+        function hideDropdown() {
+            dropdown.style.display = 'none';
+        }
+
+        // Filter options based on search
+        function filterOptions(searchTerm) {
+            teamMemberOptions.forEach(option => {
+                const userName = option.dataset.userName.toLowerCase();
+                if (userName.includes(searchTerm.toLowerCase())) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+
+        // Event Listeners
+        dropdownToggle.addEventListener('click', function() {
+            if (dropdown.style.display === 'block') {
+                hideDropdown();
+            } else {
+                showDropdown();
+                searchInput.focus();
+            }
+        });
+
+        searchInput.addEventListener('focus', showDropdown);
+        searchInput.addEventListener('input', function(e) {
+            filterOptions(e.target.value);
+        });
+
+        // Click outside to close dropdown
+        document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target) && 
+                !searchInput.contains(e.target) && 
+                !dropdownToggle.contains(e.target)) {
+                hideDropdown();
+            }
+        });
+
+        // Team member option click
+        teamMemberOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                const userName = this.dataset.userName;
+                addMember(userId, userName);
+            });
+        });
+
+        // Remove member (delegated event for dynamically created buttons)
+        selectedTagsContainer.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-btn')) {
+                const userId = e.target.closest('.remove-btn').dataset.userId;
+                removeMember(userId);
+            }
+        });
+
+        // Date validation
+        const startDate = document.getElementById('{{ form.start_date.id_for_label }}');
+        const dueDate = document.getElementById('{{ form.due_date.id_for_label }}');
+        
+        function validateDates() {
+            if (startDate && dueDate && startDate.value && dueDate.value) {
+                const start = new Date(startDate.value);
+                const due = new Date(dueDate.value);
+                
+                if (due < start) {
+                    dueDate.setCustomValidity('Due date must be after start date');
+                    dueDate.classList.add('is-invalid');
+                } else {
+                    dueDate.setCustomValidity('');
+                    dueDate.classList.remove('is-invalid');
+                }
+            }
+        }
+        
+        if (startDate && dueDate) {
+            startDate.addEventListener('change', validateDates);
+            dueDate.addEventListener('change', validateDates);
+        }
+
+        // Initialize
+        setTimeout(() => {
+            initializeSelectedMembers();
+        }, 100);
+    });
+</script>
+{% endblock %}

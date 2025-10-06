@@ -1,0 +1,379 @@
+<!-- templates/investor/portfolio_startups.html -->
+{% extends 'base_user.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Portfolio Startups - Investor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Portfolio Startups</h1>
+            <p class="text-muted">Overview of all startups in your investment portfolio</p>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'investments:investor_portfolio' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Portfolio
+            </a>
+            <a href="{% url 'investments:investor_reports' %}" class="btn btn-primary">
+                <i class="fas fa-chart-bar me-2"></i>View Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Portfolio Summary -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Total Startups</h6>
+                        <h3 class="mb-0">{{ total_startups }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-rocket text-warning fa-2x"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Portfolio companies</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Total Invested</h6>
+                        <h3 class="mb-0">${{ total_invested|floatformat:0|intcomma }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-hand-holding-usd text-success fa-2x"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Across all startups</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Avg. Investment</h6>
+                        <h3 class="mb-0">
+                            {% if total_startups > 0 %}
+                                ${{ total_invested|divisibleby:total_startups|floatformat:0|intcomma }}
+                            {% else %}
+                                $0
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-balance-scale text-info fa-2x"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Per startup</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Active Rounds</h6>
+                        <h3 class="mb-0">
+                            {% with total_rounds=startups_with_investment|length %}
+                                {{ total_rounds }}
+                            {% endwith %}
+                        </h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-layer-group text-primary fa-2x"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Investment rounds</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Startups Grid -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Portfolio Companies</h5>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary" onclick="filterStartups('all')">All</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="sortStartups('investment')">By Investment</button>
+                <button class="btn btn-sm btn-outline-info" onclick="sortStartups('roi')">By ROI</button>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if startups_with_investment %}
+            <div class="row" id="startupsGrid">
+                {% for item in startups_with_investment %}
+                <div class="col-lg-4 col-md-6 mb-4 startup-card" data-investment="{{ item.total_invested }}" data-roi="{{ item.current_roi }}">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-white border-0 pb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="startup-icon bg-primary bg-opacity-10 text-primary rounded-3 p-2 me-2">
+                                        <i class="fas fa-rocket"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-0">{{ item.startup.name }}</h5>
+                                        <small class="text-muted">{{ item.startup.industry|default:"No industry specified" }}</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-{% if item.startup.stage == 'seed' %}warning{% elif item.startup.stage == 'series_a' %}primary{% elif item.startup.stage == 'series_b' %}info{% else %}secondary{% endif %}">
+                                    {{ item.startup.get_stage_display|default:"Early Stage" }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Startup Description -->
+                            <p class="card-text text-muted small mb-3">
+                                {{ item.startup.description|truncatewords:20|default:"No description available" }}
+                            </p>
+                            
+                            <!-- Investment Summary -->
+                            <div class="investment-summary mb-3">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <div class="metric-value fw-bold text-primary">${{ item.total_invested|floatformat:0|intcomma }}</div>
+                                        <small class="text-muted">Total Invested</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="metric-value fw-bold text-{% if item.current_roi >= 0 %}success{% else %}danger{% endif %}">
+                                            {{ item.current_roi|floatformat:1 }}%
+                                        </div>
+                                        <small class="text-muted">Current ROI</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="metric-value fw-bold text-warning">{{ item.investment_count }}</div>
+                                        <small class="text-muted">Rounds</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Latest Investment -->
+                            {% if item.latest_investment %}
+                            <div class="latest-investment border-top pt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">Latest Round</small>
+                                        <div class="fw-semibold">{{ item.latest_investment.get_round_display }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">{{ item.latest_investment.investment_date|date:"M Y" }}</small>
+                                        <div class="fw-semibold">${{ item.latest_investment.amount|floatformat:0|intcomma }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-footer bg-white border-0 pt-0">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'investments:investment_detail' item.latest_investment.pk %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View Investments
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="empty-state-icon mb-4">
+                    <i class="fas fa-building fa-3x text-muted"></i>
+                </div>
+                <h5 class="text-muted">No Portfolio Startups</h5>
+                <p class="text-muted mb-4">You haven't made any investments yet. Start building your portfolio by making your first investment.</p>
+                <a href="{% url 'investments:investment_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Make First Investment
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Startup Details Modal -->
+    <div class="modal fade" id="startupDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="startupModalTitle">Startup Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="startupModalBody">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+}
+
+.startup-card .card {
+    transition: all 0.3s ease;
+}
+
+.startup-card .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.startup-icon {
+    transition: transform 0.3s ease;
+}
+
+.startup-card .card:hover .startup-icon {
+    transform: scale(1.1);
+}
+
+.metric-value {
+    font-size: 1.1rem;
+}
+
+.empty-state-icon {
+    opacity: 0.5;
+}
+
+.btn-group .btn.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .startup-card {
+        margin-bottom: 1rem;
+    }
+    
+    .investment-summary .row {
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Add hover effects to startup cards
+    const startupCards = document.querySelectorAll('.startup-card .card');
+    startupCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        });
+    });
+});
+
+function filterStartups(filterType) {
+    const buttons = document.querySelectorAll('.btn-group .btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // In a real implementation, this would filter the startups
+    console.log('Filtering by:', filterType);
+}
+
+function sortStartups(sortType) {
+    const buttons = document.querySelectorAll('.btn-group .btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const grid = document.getElementById('startupsGrid');
+    const cards = Array.from(grid.getElementsByClassName('startup-card'));
+    
+    cards.sort((a, b) => {
+        const aValue = parseFloat(a.dataset[sortType]);
+        const bValue = parseFloat(b.dataset[sortType]);
+        
+        if (sortType === 'roi') {
+            return bValue - aValue; // Descending for ROI
+        } else {
+            return bValue - aValue; // Descending for investment
+        }
+    });
+    
+    // Clear and re-append sorted cards
+    cards.forEach(card => grid.appendChild(card));
+}
+
+// Quick view functionality
+function showStartupDetails(startupId) {
+    // In a real implementation, this would fetch startup details via AJAX
+    const modal = new bootstrap.Modal(document.getElementById('startupDetailModal'));
+    document.getElementById('startupModalTitle').textContent = 'Startup Details';
+    document.getElementById('startupModalBody').innerHTML = `
+        <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+            <p>Loading startup details...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // Simulate API call
+    setTimeout(() => {
+        document.getElementById('startupModalBody').innerHTML = `
+            <div class="startup-details">
+                <h6>Detailed information about the startup</h6>
+                <p>This would include:</p>
+                <ul>
+                    <li>Company overview</li>
+                    <li>Team information</li>
+                    <li>Financial metrics</li>
+                    <li>Recent updates</li>
+                    <li>Investment history</li>
+                </ul>
+            </div>
+        `;
+    }, 1000);
+}
+
+// Export portfolio data
+function exportPortfolioData() {
+    alert('Export functionality would be implemented here.\nThis could export to CSV, PDF, or Excel format.');
+}
+
+// Search functionality
+function searchStartups() {
+    const searchTerm = document.getElementById('startupSearch').value.toLowerCase();
+    const cards = document.querySelectorAll('.startup-card');
+    
+    cards.forEach(card => {
+        const startupName = card.querySelector('.card-title').textContent.toLowerCase();
+        const industry = card.querySelector('.text-muted').textContent.toLowerCase();
+        
+        if (startupName.includes(searchTerm) || industry.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

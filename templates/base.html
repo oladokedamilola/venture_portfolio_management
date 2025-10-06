@@ -17,6 +17,8 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
+    <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/x-icon">
+
     <style>
         /* Enhanced Global Styles */
         body {
@@ -253,13 +255,6 @@
                         <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'features' in request.path %}active{% endif %}" href="{% url 'features' %}">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'about' in request.path %}active{% endif %}" href="{% url 'about' %}">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'contact' in request.path %}active{% endif %}" href="{% url 'contact' %}">Contact</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -332,9 +327,6 @@
                                 <li><a class="dropdown-item" href="{% url 'profile' %}">
                                     <i class="bi bi-person me-2"></i>Profile
                                 </a></li>
-                                <li><a class="dropdown-item" href="{% url 'notifications' %}">
-                                    <i class="bi bi-bell me-2"></i>Notifications
-                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
@@ -349,7 +341,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-accent ms-2" href="{% url 'register' %}">
+                            <a class="btn btn-accent ms-2" href="#" data-bs-toggle="modal" data-bs-target="#roleSelectionModal">
                                 <i class="bi bi-rocket-takeoff me-1"></i>Get Started
                             </a>
                         </li>
@@ -368,68 +360,365 @@
         </div>
     </main>
 
-    <!-- Enhanced Footer -->
-    <footer class="footer py-5">
-        <div class="container">
-            <div class="row">
-                <!-- Brand Column -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="fw-bold mb-3">VentureNest</h5>
-                    <p class="mb-3">Nurturing startups until they're strong enough to fly. Streamline your venture studio portfolio management with our comprehensive platform.</p>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="text-light"><i class="bi bi-twitter fs-5"></i></a>
-                        <a href="#" class="text-light"><i class="bi bi-linkedin fs-5"></i></a>
-                        <a href="#" class="text-light"><i class="bi bi-github fs-5"></i></a>
+
+
+
+<!-- Compact Role Selection Modal -->
+<div class="modal fade" id="roleSelectionModal" tabindex="-1" aria-labelledby="roleSelectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content">
+<!-- Modal Header -->
+<div class="modal-header bg-nest text-white border-0 py-3">
+    <div class="text-center w-100">
+        <h4 class="modal-title mb-1 fw-bold text-white" id="roleSelectionModalLabel">
+            <i class="bi bi-rocket-takeoff me-2"></i>Join VentureNest
+        </h4>
+        <p class="mb-0 small text-white">Choose your role to begin</p>
+    </div>
+    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-3">
+                <form method="post" action="{% url 'role_selection' %}" id="roleSelectionForm">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <!-- Venture Manager Option -->
+                        <div class="col-12">
+                            <input type="radio" class="btn-check" name="role" id="role_manager" value="manager" required>
+                            <label class="card role-option" for="role_manager">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="role-icon me-3">
+                                            <i class="bi bi-graph-up-arrow text-nest-green fs-4"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="card-title text-nest-green mb-1 fw-bold">Venture Manager</h6>
+                                            <p class="card-text text-muted small mb-0">
+                                                Manage startup portfolios and investments
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Founder Option -->
+                        <div class="col-12">
+                            <input type="radio" class="btn-check" name="role" id="role_founder" value="founder" required>
+                            <label class="card role-option" for="role_founder">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="role-icon me-3">
+                                            <i class="bi bi-lightbulb text-warning fs-4"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="card-title text-warning mb-1 fw-bold">Founder</h6>
+                                            <p class="card-text text-muted small mb-0">
+                                                Build and scale your startup
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Team Member Option -->
+                        <div class="col-12">
+                            <input type="radio" class="btn-check" name="role" id="role_team_member" value="team_member" required>
+                            <label class="card role-option" for="role_team_member">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="role-icon me-3">
+                                            <i class="bi bi-people text-info fs-4"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="card-title text-info mb-1 fw-bold">Team Member</h6>
+                                            <p class="card-text text-muted small mb-0">
+                                                Collaborate on projects and tasks
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Investor Option -->
+                        <div class="col-12">
+                            <input type="radio" class="btn-check" name="role" id="role_investor" value="investor" required>
+                            <label class="card role-option" for="role_investor">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="role-icon me-3">
+                                            <i class="bi bi-coin text-success fs-4"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="card-title text-success mb-1 fw-bold">Investor</h6>
+                                            <p class="card-text text-muted small mb-0">
+                                                Discover and fund promising startups
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Quick Links -->
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Platform</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'features' %}">Features</a></li>
-                        <li class="mb-2"><a href="{% url 'about' %}">About</a></li>
-                        <li class="mb-2"><a href="{% url 'contact' %}">Contact</a></li>
-                        <li class="mb-2"><a href="{% url 'register' %}">Get Started</a></li>
-                    </ul>
-                </div>
-
-                <!-- Resources -->
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Resources</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'help' %}">Help Center</a></li>
-                        <li class="mb-2"><a href="#">Documentation</a></li>
-                        <li class="mb-2"><a href="#">Blog</a></li>
-                        <li class="mb-2"><a href="#">Community</a></li>
-                    </ul>
-                </div>
-
-                <!-- Legal -->
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="fw-bold mb-3">Legal</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'privacy' %}">Privacy Policy</a></li>
-                        <li class="mb-2"><a href="{% url 'terms' %}">Terms of Service</a></li>
-                        <li class="mb-2"><a href="#">Cookie Policy</a></li>
-                        <li class="mb-2"><a href="#">Security</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <hr class="border-light my-4">
-
-            <!-- Bottom Footer -->
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                    <small>&copy; {% now "Y" %} VentureNest. All rights reserved.</small>
-                </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <small>Built with ❤️ for venture studios and startups</small>
-                </div>
+                    <!-- Action Buttons -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary fw-bold" id="continueBtn" disabled>
+                                    <i class="bi bi-arrow-right me-2"></i>Continue
+                                </button>
+                            </div>
+                            <div class="text-center mt-2">
+                                <small class="text-muted">
+                                    Have an account? 
+                                    <a href="{% url 'login' %}" class="text-nest-green text-decoration-none fw-medium">Sign In</a>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-    </footer>
+    </div>
+</div>
+
+<style>
+    /* Compact Role Selection Modal Styles */
+    .role-option {
+        cursor: pointer;
+        border: 2px solid var(--color-light-grey);
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+        background: white;
+        margin-bottom: 0.5rem;
+    }
+
+    .role-option:hover {
+        border-color: var(--color-nest-green);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .btn-check:checked + .role-option {
+        border-color: var(--color-nest-green);
+        background: linear-gradient(135deg, rgba(46, 125, 50, 0.08) 0%, rgba(46, 125, 50, 0.02) 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(46, 125, 50, 0.15);
+    }
+
+    .role-icon {
+        opacity: 0.9;
+        transition: all 0.3s ease;
+        min-width: 40px;
+        text-align: center;
+    }
+
+    .btn-check:checked + .role-option .role-icon {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    /* Modal specific styles */
+    .modal-content {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+
+    .modal-header {
+        border-radius: 1rem 1rem 0 0 !important;
+        padding: 1rem 1.5rem;
+        color: var(--color-white);
+    }
+
+    .modal-body {
+        padding: 1rem 1.5rem;
+    }
+
+    /* Button styles */
+    #continueBtn {
+        padding: 0.6rem 1.5rem;
+        border-radius: 0.6rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    #continueBtn:not(:disabled) {
+        background: linear-gradient(135deg, var(--color-nest-green) 0%, var(--color-forest-dark) 100%);
+        border: none;
+    }
+
+    #continueBtn:disabled {
+        background-color: var(--color-light-grey);
+        border-color: var(--color-light-grey);
+        color: var(--color-medium-grey);
+    }
+
+    #continueBtn:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(46, 125, 50, 0.25);
+    }
+
+    /* Text emphasis */
+    .card-title {
+        font-size: 0.95rem;
+        font-weight: 700 !important;
+    }
+
+    .card-text {
+        font-size: 0.8rem;
+        line-height: 1.3;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .modal-dialog {
+            margin: 0.5rem;
+        }
+        
+        .modal-header {
+            padding: 0.75rem 1rem;
+        }
+        
+        .modal-body {
+            padding: 0.75rem 1rem;
+        }
+        
+        .role-icon {
+            min-width: 35px;
+        }
+        
+        .card-body {
+            padding: 0.75rem !important;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleRadios = document.querySelectorAll('input[name="role"]');
+        const continueBtn = document.getElementById('continueBtn');
+        const form = document.getElementById('roleSelectionForm');
+
+        // Enable continue button when a role is selected
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                continueBtn.disabled = !Array.from(roleRadios).some(r => r.checked);
+            });
+        });
+
+        // Add smooth selection animation
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove any previous selection animations
+                document.querySelectorAll('.role-option').forEach(option => {
+                    option.style.transform = 'translateY(0)';
+                });
+                
+                // Highlight selected option
+                if (this.checked) {
+                    const label = this.nextElementSibling;
+                    label.style.transform = 'translateY(-2px)';
+                }
+            });
+        });
+
+        // Auto-submit after short delay when role is selected
+        let submitTimeout;
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Clear any existing timeout
+                if (submitTimeout) {
+                    clearTimeout(submitTimeout);
+                }
+                
+                // Auto-submit after 1 second (faster for compact modal)
+                submitTimeout = setTimeout(() => {
+                    if (this.checked) {
+                        form.submit();
+                    }
+                }, 1000);
+            });
+        });
+
+        // Clear timeout if user interacts with form
+        form.addEventListener('click', function() {
+            if (submitTimeout) {
+                clearTimeout(submitTimeout);
+            }
+        });
+    });
+</script>
+
+
+
+    <!-- Enhanced Footer with Hover Effects -->
+<footer class="footer py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Brand Column -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="fw-bold mb-3 text-white">VentureNest</h5>
+                <p class="mb-3 text-light opacity-75">Nurturing startups until they're strong enough to fly. Streamline your venture studio portfolio management with our comprehensive platform.</p>
+                <div class="d-flex gap-3">
+                    <a href="#" class="text-white opacity-75 hover-opacity-100 transition"><i class="bi bi-twitter fs-5"></i></a>
+                    <a href="#" class="text-white opacity-75 hover-opacity-100 transition"><i class="bi bi-linkedin fs-5"></i></a>
+                    <a href="#" class="text-white opacity-75 hover-opacity-100 transition"><i class="bi bi-github fs-5"></i></a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="fw-bold mb-3 text-white">Platform</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Features</a></li>
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">About</a></li>
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Contact</a></li>
+                    <li class="mb-2"><a href="#" data-bs-toggle="modal" data-bs-target="#roleSelectionModal" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Get Started</a></li>
+                </ul>
+            </div>
+
+            <!-- Resources -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h6 class="fw-bold mb-3 text-white">Resources</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Help Center</a></li>
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Documentation</a></li>
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Blog</a></li>
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Community</a></li>
+                </ul>
+            </div>
+
+            <!-- Legal -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <h6 class="fw-bold mb-3 text-white">Legal</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Privacy Policy</a></li>
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Terms of Service</a></li>
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Cookie Policy</a></li>
+                    <li class="mb-2"><a href="#" class="text-light text-decoration-none opacity-75 hover-opacity-100 hover-text-white transition">Security</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="border-light opacity-25 my-4">
+
+        <!-- Bottom Footer -->
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                <small class="text-light opacity-75">&copy; {% now "Y" %} VentureNest. All rights reserved.</small>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <small class="text-light opacity-75">Built with ❤️ for venture studios and startups</small>
+            </div>
+        </div>
+    </div>
+</footer>
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

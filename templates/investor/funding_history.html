@@ -1,203 +1,88 @@
 {% extends 'base_user.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
 <div class="container-fluid py-4">
+
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-1">Funding History</h1>
-            <p class="text-muted">Complete history of your investments</p>
+            <p class="text-muted">Track your investment activity and performance</p>
         </div>
         <div class="btn-group">
-            <button class="btn btn-outline-primary" onclick="exportToCSV()">
+            {% comment %} <button class="btn btn-outline-primary" onclick="exportToCSV()">
                 <i class="fas fa-download me-2"></i>Export CSV
-            </button>
+            </button> {% endcomment %}
         </div>
     </div>
 
     <!-- Summary Cards -->
     <div class="row mb-4">
-        <div class="col-xl-2 col-md-4 mb-4">
-            <div class="dashboard-card text-center">
-                <h4 class="mb-1">{{ total_investments }}</h4>
-                <small class="text-muted">Total Investments</small>
-            </div>
-        </div>
-        <div class="col-xl-2 col-md-4 mb-4">
-            <div class="dashboard-card text-center">
-                <h4 class="mb-1 text-success">{{ active_investments }}</h4>
-                <small class="text-muted">Active</small>
-            </div>
-        </div>
-        <div class="col-xl-2 col-md-4 mb-4">
-            <div class="dashboard-card text-center">
-                <h4 class="mb-1 text-info">{{ exited_investments }}</h4>
-                <small class="text-muted">Exited</small>
-            </div>
-        </div>
-        <div class="col-xl-2 col-md-4 mb-4">
-            <div class="dashboard-card text-center">
-                <h4 class="mb-1 text-warning">{{ written_off_investments }}</h4>
-                <small class="text-muted">Written Off</small>
-            </div>
-        </div>
-        <div class="col-xl-2 col-md-4 mb-4">
+        <div class="col-md-3 mb-3">
             <div class="dashboard-card text-center">
                 <h4 class="mb-1 text-nest-green">${{ total_invested|floatformat:0|intcomma }}</h4>
                 <small class="text-muted">Total Invested</small>
             </div>
         </div>
-        <div class="col-xl-2 col-md-4 mb-4">
+        <div class="col-md-3 mb-3">
             <div class="dashboard-card text-center">
-                <h4 class="mb-1 {% if total_return >= 0 %}text-success{% else %}text-danger{% endif %}">
-                    ${{ total_return|floatformat:0|intcomma }}
-                </h4>
-                <small class="text-muted">Total Return</small>
+                <h4 class="mb-1">{{ total_deals }}</h4>
+                <small class="text-muted">Total Deals</small>
             </div>
         </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-control" onchange="filterByStatus(this.value)">
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="exited">Exited</option>
-                        <option value="written_off">Written Off</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Funding Round</label>
-                    <select class="form-control" onchange="filterByRound(this.value)">
-                        <option value="">All Rounds</option>
-                        <option value="pre_seed">Pre-Seed</option>
-                        <option value="seed">Seed</option>
-                        <option value="series_a">Series A</option>
-                        <option value="series_b">Series B</option>
-                        <option value="series_c">Series C+</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Date Range</label>
-                    <select class="form-control" onchange="filterByDateRange(this.value)">
-                        <option value="">All Time</option>
-                        <option value="this_year">This Year</option>
-                        <option value="last_year">Last Year</option>
-                        <option value="last_5_years">Last 5 Years</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">ROI Range</label>
-                    <select class="form-control" onchange="filterByROI(this.value)">
-                        <option value="">All ROI</option>
-                        <option value="positive">Positive</option>
-                        <option value="negative">Negative</option>
-                        <option value="high_performer">> 100% ROI</option>
-                    </select>
-                </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card text-center">
+                <h4 class="mb-1 text-info">{{ yearly_totals|length }}</h4>
+                <small class="text-muted">Active Years</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card text-center">
+                <h4 class="mb-1 text-success">
+                    {% if total_deals > 0 %}
+                        ${{ total_invested|divisibleby:total_deals|floatformat:0 }}
+                    {% else %}
+                        $0
+                    {% endif %}
+                </h4>
+                <small class="text-muted">Avg Investment</small>
             </div>
         </div>
     </div>
 
     <!-- Investments Table -->
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">Investment History</h5>
-            <div class="d-flex gap-2">
-                <input type="text" class="form-control form-control-sm" placeholder="Search investments..." 
-                       onkeyup="searchInvestments(this.value)" style="width: 200px;">
-            </div>
+            <h5 class="card-title mb-0">Investment Records</h5>
+            <input type="text" class="form-control form-control-sm" placeholder="Search..." onkeyup="searchInvestments(this.value)" style="width: 200px;">
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover" id="investmentsTable">
-                    <thead>
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>Startup</th>
                             <th>Industry</th>
                             <th>Round</th>
                             <th>Date</th>
                             <th>Amount</th>
-                            <th>Equity</th>
-                            <th>Valuation</th>
-                            <th>Current Value</th>
-                            <th>ROI</th>
-                            <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for investment in investments %}
-                        <tr class="investment-row" 
-                            data-status="{{ investment.status }}"
-                            data-round="{{ investment.round }}"
-                            data-roi="{{ investment.roi }}"
-                            data-date="{{ investment.date|date:'Y-m-d' }}">
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {% if investment.startup.logo %}
-                                    <img src="{{ investment.startup.logo.url }}" alt="{{ investment.startup.name }} logo" 
-                                         class="rounded me-2" style="width: 30px; height: 30px; object-fit: cover;">
-                                    {% endif %}
-                                    <strong>{{ investment.startup.name }}</strong>
-                                </div>
-                            </td>
-                            <td>{{ investment.startup.industry|title }}</td>
-                            <td>
-                                <span class="badge bg-earth text-white">
-                                    {{ investment.get_round_display }}
-                                </span>
-                            </td>
-                            <td>{{ investment.date|date:"M d, Y" }}</td>
-                            <td>
-                                <strong>${{ investment.amount|floatformat:0|intcomma }}</strong>
-                            </td>
-                            <td>
-                                <span class="text-muted">{{ investment.equity }}%</span>
-                            </td>
-                            <td>
-                                <small>${{ investment.valuation|floatformat:0|intcomma }}</small>
-                            </td>
-                            <td>
-                                <strong>${{ investment.current_value|floatformat:0|intcomma }}</strong>
-                            </td>
-                            <td>
-                                <span class="badge {% if investment.roi >= 0 %}bg-success{% else %}bg-danger{% endif %}">
-                                    {{ investment.roi }}%
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge 
-                                    {% if investment.status == 'active' %}bg-success
-                                    {% elif investment.status == 'exited' %}bg-info
-                                    {% else %}bg-warning{% endif %}">
-                                    {{ investment.get_status_display }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{% url 'investor_startup_detail' investment.startup.id %}" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <button class="btn btn-sm btn-outline-info" 
-                                            onclick="showInvestmentDetails({{ investment.id }})">
-                                        <i class="fas fa-info-circle"></i>
-                                    </button>
-                                </div>
-                            </td>
+                        <tr>
+                            <td>{{ investment.startup.name }}</td>
+                            <td>{{ investment.startup.industry }}</td>
+                            <td>{{ investment.get_round_display }}</td>
+                            <td>{{ investment.investment_date|date:"M d, Y" }}</td>
+                            <td>${{ investment.amount|floatformat:0|intcomma }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="11" class="text-center py-4">
-                                <i class="fas fa-history fa-3x text-muted mb-3"></i>
-                                <h5>No investment history</h5>
-                                <p class="text-muted">Your investment history will appear here once you make investments.</p>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="fas fa-info-circle me-2"></i>No investment records found.
                             </td>
                         </tr>
                         {% endfor %}
@@ -207,168 +92,111 @@
         </div>
     </div>
 
-    <!-- Performance Summary -->
-    <div class="row mt-4">
-        <div class="col-lg-6">
-            <div class="card">
+    <!-- Charts -->
+    <div class="row mt-5">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Performance by Round</h5>
+                    <h5 class="card-title mb-0">Investments by Round</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="roundPerformanceChart" height="250"></canvas>
+                    <canvas id="roundChart" height="250"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-lg-6">
-            <div class="card">
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Annual Investment Activity</h5>
+                    <h5 class="card-title mb-0">Yearly Investment Totals</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="annualActivityChart" height="250"></canvas>
+                    <canvas id="yearlyChart" height="250"></canvas>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Investment Details Modal -->
-<div class="modal fade" id="investmentDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Investment Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="investmentDetailsContent">
-                <!-- Content will be loaded via JavaScript -->
-            </div>
-        </div>
-    </div>
-</div>
+<!-- ChartJS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-function filterByStatus(status) {
-    filterTable('status', status);
-}
-
-function filterByRound(round) {
-    filterTable('round', round);
-}
-
-function filterByDateRange(range) {
-    // Implementation for date range filtering
-    filterTable('date-range', range);
-}
-
-function filterByROI(roiFilter) {
-    filterTable('roi', roiFilter);
-}
-
-function filterTable(type, value) {
-    const rows = document.querySelectorAll('.investment-row');
-    const today = new Date();
-    
-    rows.forEach(row => {
-        let show = true;
-        
-        switch(type) {
-            case 'status':
-                if (value && row.dataset.status !== value) show = false;
-                break;
-            case 'round':
-                if (value && row.dataset.round !== value) show = false;
-                break;
-            case 'roi':
-                if (value === 'positive' && parseFloat(row.dataset.roi) < 0) show = false;
-                if (value === 'negative' && parseFloat(row.dataset.roi) >= 0) show = false;
-                if (value === 'high_performer' && parseFloat(row.dataset.roi) < 100) show = false;
-                break;
-        }
-        
-        row.style.display = show ? '' : 'none';
-    });
-}
-
-function searchInvestments(query) {
-    const rows = document.querySelectorAll('.investment-row');
-    const searchTerm = query.toLowerCase();
-    
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-    });
-}
-
-function exportToCSV() {
-    // Implementation for CSV export
-    alert('Export functionality would be implemented here');
-}
-
-function showInvestmentDetails(investmentId) {
-    // Implementation for showing investment details in modal
-    document.getElementById('investmentDetailsContent').innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-    
-    const modal = new bootstrap.Modal(document.getElementById('investmentDetailsModal'));
-    modal.show();
-    
-    // In a real implementation, you would fetch the details via AJAX
-    setTimeout(() => {
-        document.getElementById('investmentDetailsContent').innerHTML = `
-            <p>Detailed investment information would be loaded here for investment ID: ${investmentId}</p>
-        `;
-    }, 1000);
-}
-
-// Initialize charts
 document.addEventListener('DOMContentLoaded', function() {
-    // Round Performance Chart
-    const roundCtx = document.getElementById('roundPerformanceChart').getContext('2d');
-    new Chart(roundCtx, {
-        type: 'bar',
+    // ===== Dynamic Data from Django Context =====
+    const yearlyLabels = [
+        {% for y in yearly_totals reversed %}
+            "{{ y.investment_date__year }}",
+        {% endfor %}
+    ];
+    const yearlyData = [
+        {% for y in yearly_totals reversed %}
+            {{ y.total_amount|floatformat:2 }},
+        {% endfor %}
+    ];
+
+    const labels = yearlyLabels.length ? yearlyLabels : ['No Data'];
+    const data = yearlyData.length ? yearlyData : [0];
+
+    // ====== Chart 1: Yearly Investment Totals ======
+    const yearlyCtx = document.getElementById('yearlyChart');
+    new Chart(yearlyCtx, {
+        type: 'line',
         data: {
-            labels: ['Pre-Seed', 'Seed', 'Series A', 'Series B', 'Series C+'],
+            labels: labels,
             datasets: [{
-                label: 'Average ROI (%)',
-                data: [45, 68, 32, 25, 18],
-                backgroundColor: 'var(--color-nest-green)'
+                label: 'Total Invested ($)',
+                data: data,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7
             }]
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Investment Amount ($)' } },
+                x: { title: { display: true, text: 'Year' } }
             }
         }
     });
 
-    // Annual Activity Chart
-    const annualCtx = document.getElementById('annualActivityChart').getContext('2d');
-    new Chart(annualCtx, {
-        type: 'line',
+    // ====== Chart 2: Investments by Round ======
+    const roundLabels = ['Pre-Seed', 'Seed', 'Series A', 'Series B', 'Series C+'];
+    const roundData = [5, 8, 3, 2, 1];  // <-- Hardcoded example values; update later dynamically
+
+    new Chart(document.getElementById('roundChart'), {
+        type: 'bar',
         data: {
-            labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+            labels: roundLabels,
             datasets: [{
-                label: 'Investments Made',
-                data: [3, 5, 8, 6, 7, 4],
-                borderColor: 'var(--color-sky-blue)',
-                backgroundColor: 'rgba(66, 165, 245, 0.1)',
-                fill: true,
-                tension: 0.4
+                label: 'Number of Investments',
+                data: roundData,
+                backgroundColor: '#3b82f6'
             }]
         },
         options: {
-            responsive: true
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Count' } }
+            }
         }
     });
 });
 </script>
+
+<style>
+.dashboard-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+.dashboard-card:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.05); transform: translateY(-2px); }
+.text-nest-green { color: #10b981 !important; }
+</style>
 {% endblock %}

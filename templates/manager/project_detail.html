@@ -1,5 +1,6 @@
 {% extends 'base_user.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}{{ project.name }} - VentureNest{% endblock %}
 
@@ -29,7 +30,7 @@
 </div>
 {% endblock %}
 
-{% block user_content %}
+{% block content %}
 <div class="row">
     <!-- Main Content -->
     <div class="col-lg-8">
@@ -41,10 +42,10 @@
                         <i class="bi bi-info-circle text-nest me-2"></i>Project Overview
                     </h5>
                     <div class="d-flex gap-2">
-                        <span class="badge {% if project.status == 'active' %}bg-success{% elif project.status == 'planning' %}bg-info{% elif project.status == 'on_hold' %}bg-warning{% else %}bg-secondary{% endif %}">
+                        <span class="badge {% if project.status == 'completed' %}bg-success{% elif project.status == 'in_progress' %}bg-primary{% elif project.status == 'on_hold' %}bg-warning{% else %}bg-secondary{% endif %}">
                             {{ project.get_status_display }}
                         </span>
-                        <span class="badge {% if project.priority == 'critical' %}bg-danger{% elif project.priority == 'high' %}bg-warning{% elif project.priority == 'medium' %}bg-primary{% else %}bg-secondary{% endif %}">
+                        <span class="badge {% if project.priority == 'high' %}bg-danger{% elif project.priority == 'medium' %}bg-warning{% else %}bg-info{% endif %}">
                             {{ project.get_priority_display }} Priority
                         </span>
                     </div>
@@ -58,19 +59,25 @@
                         <!-- Key Metrics -->
                         <div class="row text-center mb-4">
                             <div class="col-3">
-                                <div class="metric-value fw-bold text-nest">85%</div>
+                                <div class="metric-value fw-bold text-nest">{{ completion_rate|floatformat:0 }}%</div>
                                 <small class="text-muted">Progress</small>
                             </div>
                             <div class="col-3">
-                                <div class="metric-value fw-bold text-nest">18/24</div>
+                                <div class="metric-value fw-bold text-nest">{{ completed_tasks }}/{{ total_tasks }}</div>
                                 <small class="text-muted">Tasks Done</small>
                             </div>
                             <div class="col-3">
-                                <div class="metric-value fw-bold text-nest">12</div>
-                                <small class="text-muted">Days Left</small>
+                                <div class="metric-value fw-bold text-nest">
+                                    {% if project.due_date %}
+                                        {{ project.due_date|timeuntil }}
+                                    {% else %}
+                                        No due date
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">Time Left</small>
                             </div>
                             <div class="col-3">
-                                <div class="metric-value fw-bold text-nest">5</div>
+                                <div class="metric-value fw-bold text-nest">{{ project.team_members.count }}</div>
                                 <small class="text-muted">Team Members</small>
                             </div>
                         </div>
@@ -79,10 +86,10 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="fw-semibold">Overall Progress</span>
-                                <span class="text-muted">85%</span>
+                                <span class="text-muted">{{ completion_rate|floatformat:0 }}%</span>
                             </div>
                             <div class="progress" style="height: 10px;">
-                                <div class="progress-bar bg-success" style="width: 85%"></div>
+                                <div class="progress-bar bg-success" style="width: {{ completion_rate }}%"></div>
                             </div>
                         </div>
                     </div>
@@ -90,11 +97,11 @@
                         <div class="project-timeline">
                             <div class="timeline-item mb-3">
                                 <div class="text-muted small">Start Date</div>
-                                <div class="fw-semibold">{{ project.start_date|date:"M d, Y" }}</div>
+                                <div class="fw-semibold">{{ project.start_date|date:"M d, Y"|default:"Not set" }}</div>
                             </div>
                             <div class="timeline-item mb-3">
                                 <div class="text-muted small">Due Date</div>
-                                <div class="fw-semibold">{{ project.due_date|date:"M d, Y" }}</div>
+                                <div class="fw-semibold">{{ project.due_date|date:"M d, Y"|default:"Not set" }}</div>
                             </div>
                             <div class="timeline-item">
                                 <div class="text-muted small">Last Updated</div>
@@ -112,22 +119,42 @@
                                 <td class="text-muted">Startup:</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img src="{{ project.startup.logo.url|default:'/static/images/default-startup.png' }}" 
+                                        {% if project.startup.logo and project.startup.logo.url %}
+                                        <img src="{{ project.startup.logo.url }}" 
                                              alt="{{ project.startup.name }}" 
                                              class="rounded-circle me-2" 
                                              width="24" 
                                              height="24">
+                                        {% else %}
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" 
+                                             width="24" 
+                                             height="24">
+                                            <i class="bi bi-building text-muted" style="font-size: 0.8rem;"></i>
+                                        </div>
+                                        {% endif %}
                                         <span class="fw-semibold">{{ project.startup.name }}</span>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">Project Lead:</td>
-                                <td class="fw-semibold">Alex Chen</td>
+                                <td class="fw-semibold">
+                                    {% if project.project_lead %}
+                                        {{ project.project_lead.get_full_name|default:project.project_lead.username }}
+                                    {% else %}
+                                        Not assigned
+                                    {% endif %}
+                                </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">Budget:</td>
-                                <td class="fw-semibold">$50,000</td>
+                                <td class="fw-semibold">
+                                    {% if project.budget %}
+                                        ${{ project.budget|intcomma }}
+                                    {% else %}
+                                        Not set
+                                    {% endif %}
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -135,15 +162,17 @@
                         <table class="table table-sm table-borderless">
                             <tr>
                                 <td class="text-muted">Category:</td>
-                                <td class="fw-semibold">Product Development</td>
+                                <td class="fw-semibold">{{ project.category|default:"Not specified" }}</td>
                             </tr>
                             <tr>
                                 <td class="text-muted">Created:</td>
                                 <td class="fw-semibold">{{ project.created_at|date:"M d, Y" }}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted">Milestones:</td>
-                                <td class="fw-semibold">3/5 Completed</td>
+                                <td class="text-muted">Overdue Tasks:</td>
+                                <td class="fw-semibold {% if overdue_tasks.count > 0 %}text-danger{% endif %}">
+                                    {{ overdue_tasks.count }}
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -156,7 +185,7 @@
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-list-check text-nest me-2"></i>Tasks
+                        <i class="bi bi-list-check text-nest me-2"></i>Tasks ({{ total_tasks }})
                     </h5>
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal">
                         <i class="bi bi-plus-circle me-1"></i>Add Task
@@ -164,6 +193,7 @@
                 </div>
             </div>
             <div class="card-body p-0">
+                {% if tasks %}
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
@@ -177,24 +207,37 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
+                            {% for task in tasks %}
+                            <tr class="{% if task in overdue_tasks %}table-warning{% endif %}">
                                 <td>
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" checked>
+                                        <input class="form-check-input" type="checkbox" {% if task.status == 'completed' %}checked{% endif %}>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="fw-semibold">Design User Interface</div>
-                                    <small class="text-muted">Create wireframes and mockups</small>
+                                    <div class="fw-semibold">{{ task.title }}</div>
+                                    <small class="text-muted">{{ task.description|truncatechars:50|default:"No description" }}</small>
                                 </td>
                                 <td>
+                                    {% if task.assigned_to %}
                                     <div class="d-flex align-items-center">
-                                        <img src="/static/images/avatar4.png" alt="Sarah" class="rounded-circle me-2" width="24" height="24">
-                                        <span>Sarah Chen</span>
+                                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" 
+                                             width="24" 
+                                             height="24">
+                                            <i class="bi bi-person text-white" style="font-size: 0.8rem;"></i>
+                                        </div>
+                                        <span>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</span>
                                     </div>
+                                    {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                    {% endif %}
                                 </td>
-                                <td>Dec 10, 2023</td>
-                                <td><span class="badge bg-success">Completed</span></td>
+                                <td>{{ task.due_date|date:"M d, Y"|default:"Not set" }}</td>
+                                <td>
+                                    <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.status == 'in_progress' %}primary{% else %}warning{% endif %}">
+                                        {{ task.get_status_display }}
+                                    </span>
+                                </td>
                                 <td>
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
@@ -208,133 +251,78 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" checked>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold">Backend API Development</div>
-                                    <small class="text-muted">Implement REST APIs</small>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/static/images/avatar5.png" alt="Mike" class="rounded-circle me-2" width="24" height="24">
-                                        <span>Mike Rodriguez</span>
-                                    </div>
-                                </td>
-                                <td>Dec 12, 2023</td>
-                                <td><span class="badge bg-success">Completed</span></td>
-                                <td>
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical"></i>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#">Edit</a></li>
-                                            <li><a class="dropdown-item" href="#">Reassign</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox">
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold">Testing & QA</div>
-                                    <small class="text-muted">Comprehensive testing phase</small>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/static/images/avatar6.png" alt="Lisa" class="rounded-circle me-2" width="24" height="24">
-                                        <span>Lisa Wang</span>
-                                    </div>
-                                </td>
-                                <td>Dec 15, 2023</td>
-                                <td><span class="badge bg-warning">In Progress</span></td>
-                                <td>
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical"></i>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#">Edit</a></li>
-                                            <li><a class="dropdown-item" href="#">Reassign</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-list-check display-4 text-muted mb-3"></i>
+                    <h5 class="text-muted">No Tasks Yet</h5>
+                    <p class="text-muted">Get started by adding tasks to this project.</p>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                        <i class="bi bi-plus-circle me-1"></i>Add First Task
+                    </button>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Milestones -->
+        <!-- Project Timeline -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-flag text-nest me-2"></i>Milestones
+                    <i class="bi bi-clock text-nest me-2"></i>Project Timeline
                 </h5>
             </div>
             <div class="card-body">
-                <div class="milestone-tracker">
-                    <div class="milestone-item completed">
-                        <div class="milestone-icon">
-                            <i class="bi bi-check-circle-fill"></i>
+                <div class="activity-timeline">
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-plus-circle text-success"></i>
                         </div>
-                        <div class="milestone-content">
-                            <div class="fw-semibold">Project Kickoff</div>
-                            <small class="text-muted">Team alignment and planning</small>
-                            <div class="text-muted small">Completed on Nov 1, 2023</div>
-                        </div>
-                    </div>
-                    <div class="milestone-item completed">
-                        <div class="milestone-icon">
-                            <i class="bi bi-check-circle-fill"></i>
-                        </div>
-                        <div class="milestone-content">
-                            <div class="fw-semibold">Design Phase</div>
-                            <small class="text-muted">UI/UX design completion</small>
-                            <div class="text-muted small">Completed on Nov 20, 2023</div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Project Created</div>
+                            <small class="text-muted">{{ project.name }} was created</small>
+                            <div class="text-muted small">{{ project.created_at|timesince }} ago</div>
                         </div>
                     </div>
-                    <div class="milestone-item completed">
-                        <div class="milestone-icon">
-                            <i class="bi bi-check-circle-fill"></i>
+                    {% if project.updated_at != project.created_at %}
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-pencil text-primary"></i>
                         </div>
-                        <div class="milestone-content">
-                            <div class="fw-semibold">Development Phase</div>
-                            <small class="text-muted">Core feature development</small>
-                            <div class="text-muted small">Completed on Dec 10, 2023</div>
-                        </div>
-                    </div>
-                    <div class="milestone-item current">
-                        <div class="milestone-icon">
-                            <i class="bi bi-arrow-right-circle-fill"></i>
-                        </div>
-                        <div class="milestone-content">
-                            <div class="fw-semibold">Testing Phase</div>
-                            <small class="text-muted">QA and bug fixes</small>
-                            <div class="text-muted small">Due: Dec 15, 2023</div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Project Updated</div>
+                            <small class="text-muted">Project details were modified</small>
+                            <div class="text-muted small">{{ project.updated_at|timesince }} ago</div>
                         </div>
                     </div>
-                    <div class="milestone-item upcoming">
-                        <div class="milestone-icon">
-                            <i class="bi bi-circle"></i>
+                    {% endif %}
+                    {% if completed_tasks > 0 %}
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-check-circle text-success"></i>
                         </div>
-                        <div class="milestone-content">
-                            <div class="fw-semibold">Launch</div>
-                            <small class="text-muted">Production deployment</small>
-                            <div class="text-muted small">Due: Dec 20, 2023</div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Tasks Completed</div>
+                            <small class="text-muted">{{ completed_tasks }} task{{ completed_tasks|pluralize }} completed</small>
+                            <div class="text-muted small">Progress: {{ completion_rate|floatformat:0 }}%</div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if overdue_tasks.count > 0 %}
+                    <div class="activity-item d-flex">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Overdue Tasks</div>
+                            <small class="text-muted">{{ overdue_tasks.count }} task{{ overdue_tasks.count|pluralize }} overdue</small>
+                            <div class="text-muted small">Needs attention</div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -347,7 +335,7 @@
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-people text-nest me-2"></i>Team
+                        <i class="bi bi-people text-nest me-2"></i>Team ({{ project.team_members.count }})
                     </h5>
                     <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#manageTeamModal">
                         Manage
@@ -355,112 +343,98 @@
                 </div>
             </div>
             <div class="card-body">
+                {% if project.team_members.all %}
                 <div class="team-members">
+                    {% for member in project.team_members.all %}
                     <div class="team-member d-flex align-items-center mb-3">
-                        <img src="/static/images/avatar4.png" alt="Sarah" class="rounded-circle me-3" width="40" height="40">
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" 
+                             width="40" 
+                             height="40">
+                            <i class="bi bi-person text-white"></i>
+                        </div>
                         <div class="flex-grow-1">
-                            <div class="fw-semibold">Sarah Chen</div>
-                            <small class="text-muted">UI/UX Designer</small>
+                            <div class="fw-semibold">{{ member.get_full_name|default:member.username }}</div>
+                            <small class="text-muted">{{ member.role|default:"Team Member" }}</small>
                         </div>
                         <span class="badge bg-success">Active</span>
                     </div>
-                    <div class="team-member d-flex align-items-center mb-3">
-                        <img src="/static/images/avatar5.png" alt="Mike" class="rounded-circle me-3" width="40" height="40">
-                        <div class="flex-grow-1">
-                            <div class="fw-semibold">Mike Rodriguez</div>
-                            <small class="text-muted">Backend Developer</small>
-                        </div>
-                        <span class="badge bg-success">Active</span>
-                    </div>
-                    <div class="team-member d-flex align-items-center mb-3">
-                        <img src="/static/images/avatar6.png" alt="Lisa" class="rounded-circle me-3" width="40" height="40">
-                        <div class="flex-grow-1">
-                            <div class="fw-semibold">Lisa Wang</div>
-                            <small class="text-muted">QA Engineer</small>
-                        </div>
-                        <span class="badge bg-warning">Away</span>
-                    </div>
+                    {% endfor %}
                 </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-people display-4 text-muted mb-2"></i>
+                    <p class="text-muted">No team members assigned</p>
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#manageTeamModal">
+                        Add Team Members
+                    </button>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Recent Activity -->
+        <!-- Project Status -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-clock text-nest me-2"></i>Recent Activity
+                    <i class="bi bi-graph-up text-nest me-2"></i>Project Status
                 </h5>
             </div>
             <div class="card-body">
-                <div class="activity-timeline">
-                    <div class="activity-item d-flex mb-3">
-                        <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-check-circle text-success"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="fw-semibold">Task Completed</div>
-                            <small class="text-muted">Backend API Development by Mike</small>
-                            <div class="text-muted small">2 hours ago</div>
-                        </div>
+                <div class="status-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Completion Rate</span>
+                        <span class="fw-semibold">{{ completion_rate|floatformat:0 }}%</span>
                     </div>
-                    <div class="activity-item d-flex mb-3">
-                        <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-chat-left-text text-primary"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="fw-semibold">New Comment</div>
-                            <small class="text-muted">Sarah commented on design review</small>
-                            <div class="text-muted small">5 hours ago</div>
-                        </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: {{ completion_rate }}%"></div>
                     </div>
-                    <div class="activity-item d-flex">
-                        <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-flag text-warning"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="fw-semibold">Milestone Reached</div>
-                            <small class="text-muted">Development phase completed</small>
-                            <div class="text-muted small">1 day ago</div>
+                </div>
+                <div class="status-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Tasks Completed</span>
+                        <span class="fw-semibold">{{ completed_tasks }}/{{ total_tasks }}</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: {% widthratio completed_tasks total_tasks 100 %}%"></div>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Overdue Tasks</span>
+                        <span class="fw-semibold {% if overdue_tasks.count > 0 %}text-danger{% endif %}">
+                            {{ overdue_tasks.count }}
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar {% if overdue_tasks.count > 0 %}bg-warning{% else %}bg-success{% endif %}" 
+                             style="width: {% widthratio overdue_tasks.count total_tasks 100 %}%">
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Documents -->
+        <!-- Quick Actions -->
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-folder text-nest me-2"></i>Documents
+                    <i class="bi bi-lightning text-nest me-2"></i>Quick Actions
                 </h5>
             </div>
             <div class="card-body">
-                <div class="document-item d-flex align-items-center justify-content-between mb-2">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-file-earmark-text text-primary me-2"></i>
-                        <span class="small">Project_Brief.pdf</span>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-download"></i>
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#editProjectModal">
+                        <i class="bi bi-pencil me-2"></i>Edit Project
+                    </a>
+                    <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                        <i class="bi bi-plus-circle me-2"></i>Add Task
                     </button>
-                </div>
-                <div class="document-item d-flex align-items-center justify-content-between mb-2">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>
-                        <span class="small">Budget_Sheet.xlsx</span>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-download"></i>
-                    </button>
-                </div>
-                <div class="document-item d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-file-earmark-image text-warning me-2"></i>
-                        <span class="small">Design_Mockups.zip</span>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-download"></i>
-                    </button>
+                    <a href="#" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-file-earmark-text me-2"></i>Generate Report
+                    </a>
+                    <a href="{% url 'startups:manager_startup_detail' project.startup.id %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-building me-2"></i>View Startup
+                    </a>
                 </div>
             </div>
         </div>
@@ -475,40 +449,107 @@
                 <h5 class="modal-title">Add New Task</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <form>
+            <form method="POST" id="addTaskForm">
+                {% csrf_token %}
+                <input type="hidden" name="create_task" value="true">
+                <div class="modal-body">
+                    {% if task_form %}
                     <div class="mb-3">
-                        <label class="form-label">Task Title</label>
-                        <input type="text" class="form-control" placeholder="Enter task title">
+                        <label for="id_title" class="form-label">Task Title *</label>
+                        <input type="text" 
+                               name="title" 
+                               id="id_title" 
+                               class="form-control {% if task_form.title.errors %}is-invalid{% endif %}" 
+                               value="{{ task_form.title.value|default:'' }}"
+                               placeholder="Enter task title"
+                               required>
+                        {% if task_form.title.errors %}
+                        <div class="invalid-feedback">
+                            {{ task_form.title.errors.0 }}
+                        </div>
+                        {% endif %}
                     </div>
+                    
                     <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" rows="3" placeholder="Task description..."></textarea>
+                        <label for="id_description" class="form-label">Description</label>
+                        <textarea name="description" 
+                                  id="id_description" 
+                                  class="form-control {% if task_form.description.errors %}is-invalid{% endif %}" 
+                                  rows="3" 
+                                  placeholder="Task description...">{{ task_form.description.value|default:'' }}</textarea>
+                        {% if task_form.description.errors %}
+                        <div class="invalid-feedback">
+                            {{ task_form.description.errors.0 }}
+                        </div>
+                        {% endif %}
                     </div>
+                    
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Assignee</label>
-                                <select class="form-select">
-                                    <option>Sarah Chen</option>
-                                    <option>Mike Rodriguez</option>
-                                    <option>Lisa Wang</option>
+                                <label for="id_assigned_to" class="form-label">Assignee</label>
+                                <select name="assigned_to" 
+                                        id="id_assigned_to" 
+                                        class="form-select {% if task_form.assigned_to.errors %}is-invalid{% endif %}">
+                                    <option value="">Select assignee</option>
+                                    {% for member in project.team_members.all %}
+                                    <option value="{{ member.id }}" 
+                                            {% if task_form.assigned_to.value == member.id %}selected{% endif %}>
+                                        {{ member.get_full_name|default:member.username }}
+                                    </option>
+                                    {% endfor %}
                                 </select>
+                                {% if task_form.assigned_to.errors %}
+                                <div class="invalid-feedback">
+                                    {{ task_form.assigned_to.errors.0 }}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Due Date</label>
-                                <input type="date" class="form-control">
+                                <label for="id_due_date" class="form-label">Due Date</label>
+                                <input type="date" 
+                                       name="due_date" 
+                                       id="id_due_date" 
+                                       class="form-control {% if task_form.due_date.errors %}is-invalid{% endif %}" 
+                                       value="{{ task_form.due_date.value|default:'' }}">
+                                {% if task_form.due_date.errors %}
+                                <div class="invalid-feedback">
+                                    {{ task_form.due_date.errors.0 }}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Add Task</button>
-            </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_priority" class="form-label">Priority</label>
+                        <select name="priority" 
+                                id="id_priority" 
+                                class="form-select {% if task_form.priority.errors %}is-invalid{% endif %}">
+                            <option value="low" {% if task_form.priority.value == 'low' %}selected{% endif %}>Low</option>
+                            <option value="medium" {% if task_form.priority.value == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="high" {% if task_form.priority.value == 'high' %}selected{% endif %}>High</option>
+                        </select>
+                        {% if task_form.priority.errors %}
+                        <div class="invalid-feedback">
+                            {{ task_form.priority.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Task form not available. Please refresh the page.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Task</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -520,52 +561,6 @@
 
     .progress {
         background-color: #e9ecef;
-    }
-
-    .milestone-tracker {
-        position: relative;
-        padding-left: 30px;
-    }
-
-    .milestone-item {
-        position: relative;
-        padding: 1rem 0;
-        border-left: 2px solid #e9ecef;
-    }
-
-    .milestone-item:last-child {
-        border-left: 2px solid transparent;
-    }
-
-    .milestone-item.completed {
-        border-left-color: var(--color-nest-green);
-    }
-
-    .milestone-item.current {
-        border-left-color: var(--color-sky-blue);
-    }
-
-    .milestone-icon {
-        position: absolute;
-        left: -30px;
-        top: 1rem;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .milestone-item.completed .milestone-icon {
-        color: var(--color-nest-green);
-    }
-
-    .milestone-item.current .milestone-icon {
-        color: var(--color-sky-blue);
-    }
-
-    .milestone-item.upcoming .milestone-icon {
-        color: #6c757d;
     }
 
     .activity-icon {
@@ -585,11 +580,18 @@
         margin: -0.5rem;
     }
 
-    .document-item:hover {
-        background-color: #f8f9fa;
-        border-radius: 0.375rem;
-        padding: 0.5rem;
-        margin: -0.5rem;
+    .status-item {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .status-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .table-warning {
+        background-color: rgba(255, 193, 7, 0.1);
     }
 </style>
 
@@ -604,40 +606,75 @@
                 if (this.checked) {
                     statusBadge.className = 'badge bg-success';
                     statusBadge.textContent = 'Completed';
+                    row.classList.remove('table-warning');
                 } else {
                     statusBadge.className = 'badge bg-warning';
                     statusBadge.textContent = 'In Progress';
+                    
+                    // Check if task is overdue
+                    const dueDate = new Date(row.cells[3].textContent);
+                    const today = new Date();
+                    if (dueDate < today) {
+                        row.classList.add('table-warning');
+                    }
                 }
-                
-                // Update progress metrics
-                updateProgressMetrics();
             });
         });
 
-        function updateProgressMetrics() {
-            const totalTasks = document.querySelectorAll('tbody tr').length;
-            const completedTasks = document.querySelectorAll('tbody input:checked').length;
-            const progress = Math.round((completedTasks / totalTasks) * 100);
-            
-            // Update progress bar
-            const progressBar = document.querySelector('.progress-bar');
-            progressBar.style.width = `${progress}%`;
-            
-            // Update progress text
-            const progressText = document.querySelector('.progress + .text-muted');
-            if (progressText) {
-                progressText.textContent = `${progress}%`;
+        // Initialize task status based on checkboxes
+        document.querySelectorAll('.form-check-input').forEach(checkbox => {
+            if (!checkbox.checked) {
+                const row = checkbox.closest('tr');
+                const dueDateText = row.cells[3].textContent;
+                if (dueDateText && dueDateText !== 'Not set') {
+                    const dueDate = new Date(dueDateText);
+                    const today = new Date();
+                    if (dueDate < today) {
+                        row.classList.add('table-warning');
+                    }
+                }
             }
-            
-            // Update tasks done metric
-            const tasksDone = document.querySelector('.metric-value:nth-child(2)');
-            if (tasksDone) {
-                tasksDone.textContent = `${completedTasks}/${totalTasks}`;
-            }
+        });
+
+        // Handle task form submission
+        const taskForm = document.getElementById('addTaskForm');
+        if (taskForm) {
+            taskForm.addEventListener('submit', function(e) {
+                // Basic validation
+                const title = document.getElementById('id_title').value.trim();
+                if (!title) {
+                    e.preventDefault();
+                    alert('Please enter a task title.');
+                    return;
+                }
+                
+                // Show loading state
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Adding...';
+            });
         }
 
-        // Initialize progress
-        updateProgressMetrics();
+        // Reset form when modal is closed
+        const taskModal = document.getElementById('addTaskModal');
+        if (taskModal) {
+            taskModal.addEventListener('hidden.bs.modal', function() {
+                const form = document.getElementById('addTaskForm');
+                if (form) {
+                    form.reset();
+                    // Re-enable submit button
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Add Task';
+                    }
+                    // Clear validation states
+                    form.querySelectorAll('.is-invalid').forEach(el => {
+                        el.classList.remove('is-invalid');
+                    });
+                }
+            });
+        }
     });
 </script>
 {% endblock %}

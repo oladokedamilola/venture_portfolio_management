@@ -1,5 +1,6 @@
 {% extends 'base_user.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Founder Dashboard - VentureNest{% endblock %}
 
@@ -11,131 +12,68 @@
     <button class="btn btn-primary btn-sm">
         <i class="bi bi-download me-1"></i>Export Report
     </button>
-    <a href="{% url 'founder:project_create' %}" class="btn btn-outline-primary btn-sm">
+    <a href="{% url 'projects:project_create' %}" class="btn btn-outline-primary btn-sm">
         <i class="bi bi-plus-circle me-1"></i>New Project
     </a>
 </div>
 {% endblock %}
 
-{% block user_content %}
-<!-- Startup Overview -->
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-header bg-white py-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">
-                <i class="bi bi-building text-nest me-2"></i>My Startup: {{ startup.name }}
-            </h5>
-            <span class="badge {% if startup.status == 'on_track' %}bg-success{% elif startup.status == 'needs_review' %}bg-warning{% else %}bg-danger{% endif %}">
-                {{ startup.get_status_display }}
-            </span>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-md-2 text-center">
-                <img src="{{ startup.logo.url|default:'/static/images/default-startup.png' }}" 
-                     alt="{{ startup.name }}" 
-                     class="rounded-circle shadow-sm mb-3"
-                     style="width: 80px; height: 80px; object-fit: cover;">
-            </div>
-            <div class="col-md-6">
-                <p class="text-muted mb-3">{{ startup.description }}</p>
-                <div class="row text-center">
-                    <div class="col-4">
-                        <div class="metric-value fw-bold text-nest">{{ startup.team_size }}</div>
-                        <small class="text-muted">Team Size</small>
-                    </div>
-                    <div class="col-4">
-                        <div class="metric-value fw-bold text-nest">${{ startup.amount_raised|floatformat:0 }}M</div>
-                        <small class="text-muted">Funding Raised</small>
-                    </div>
-                    <div class="col-4">
-                        <div class="metric-value fw-bold text-nest">{{ startup.get_stage_display }}</div>
-                        <small class="text-muted">Stage</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="startup-quick-actions">
-                    <a href="{% url 'founder:startup_edit' startup.id %}" class="btn btn-outline-primary btn-sm w-100 mb-2">
-                        <i class="bi bi-pencil me-1"></i>Edit Startup
-                    </a>
-                    <a href="{% url 'founder:funding_apply' %}" class="btn btn-outline-primary btn-sm w-100 mb-2">
-                        <i class="bi bi-currency-dollar me-1"></i>Apply for Funding
-                    </a>
-                    <a href="{% url 'founder:projects' %}" class="btn btn-outline-primary btn-sm w-100">
-                        <i class="bi bi-kanban me-1"></i>View All Projects
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Key Metrics -->
+{% block content %}
+<!-- Statistics Cards -->
 <div class="row mb-4">
-    <div class="col-xl-2 col-md-4 col-6">
+    <div class="col-xl-3 col-md-6">
         <div class="card dashboard-card border-0">
-            <div class="card-body text-center py-3">
-                <h3 class="text-primary mb-1">12</h3>
-                <small class="text-muted">Active Projects</small>
-                <div class="mt-1">
-                    <span class="badge bg-success">3 completed</span>
+            <div class="card-body text-center py-4">
+                <div class="metric-icon bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-3" 
+                     style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-building fs-4"></i>
+                </div>
+                <h3 class="text-primary mb-1">{{ total_startups }}</h3>
+                <small class="text-muted">My Startups</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card border-0">
+            <div class="card-body text-center py-4">
+                <div class="metric-icon bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-3" 
+                     style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-kanban fs-4"></i>
+                </div>
+                <h3 class="text-success mb-1">{{ total_projects }}</h3>
+                <small class="text-muted">Total Projects</small>
+                <div class="mt-2">
+                    <span class="badge bg-success">{{ active_projects }} active</span>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-xl-2 col-md-4 col-6">
+    <div class="col-xl-3 col-md-6">
         <div class="card dashboard-card border-0">
-            <div class="card-body text-center py-3">
-                <h3 class="text-success mb-1">85%</h3>
-                <small class="text-muted">Overall Progress</small>
-                <div class="mt-1">
-                    <span class="badge bg-success">+5% this month</span>
+            <div class="card-body text-center py-4">
+                <div class="metric-icon bg-info bg-opacity-10 text-info rounded-circle mx-auto mb-3" 
+                     style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-check-circle fs-4"></i>
+                </div>
+                <h3 class="text-info mb-1">{{ completed_projects }}</h3>
+                <small class="text-muted">Completed Projects</small>
+                <div class="mt-2">
+                    <span class="badge bg-info">{{ completed_tasks }} tasks done</span>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-xl-2 col-md-4 col-6">
+    <div class="col-xl-3 col-md-6">
         <div class="card dashboard-card border-0">
-            <div class="card-body text-center py-3">
-                <h3 class="text-warning mb-1">8</h3>
-                <small class="text-muted">Pending Tasks</small>
-                <div class="mt-1">
-                    <span class="badge bg-warning">2 overdue</span>
+            <div class="card-body text-center py-4">
+                <div class="metric-icon bg-warning bg-opacity-10 text-warning rounded-circle mx-auto mb-3" 
+                     style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-list-task fs-4"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card dashboard-card border-0">
-            <div class="card-body text-center py-3">
-                <h3 class="text-info mb-1">3</h3>
-                <small class="text-muted">Funding Rounds</small>
-                <div class="mt-1">
-                    <span class="badge bg-info">1 active</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card dashboard-card border-0">
-            <div class="card-body text-center py-3">
-                <h3 class="text-nest mb-1">15</h3>
-                <small class="text-muted">Team Members</small>
-                <div class="mt-1">
-                    <span class="badge bg-success">+2 new</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-2 col-md-4 col-6">
-        <div class="card dashboard-card border-0">
-            <div class="card-body text-center py-3">
-                <h3 class="text-danger mb-1">2</h3>
-                <small class="text-muted">Urgent Items</small>
-                <div class="mt-1">
-                    <span class="badge bg-danger">Attention needed</span>
+                <h3 class="text-warning mb-1">{{ total_tasks }}</h3>
+                <small class="text-muted">Total Tasks</small>
+                <div class="mt-2">
+                    <span class="badge bg-warning">{{ overdue_tasks }} overdue</span>
                 </div>
             </div>
         </div>
@@ -145,23 +83,90 @@
 <div class="row">
     <!-- Main Content -->
     <div class="col-lg-8">
-        <!-- Progress Overview -->
+        <!-- My Startups Overview -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-graph-up text-nest me-2"></i>Progress Overview
-                </h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-building text-nest me-2"></i>My Startups
+                    </h5>
+                    {% if total_startups > 0 %}
+                    <a href="{% url 'startups:founder_startup_list' %}" class="btn btn-outline-primary btn-sm">
+                        View All ({{ total_startups }})
+                    </a>
+                    {% endif %}
+                </div>
             </div>
             <div class="card-body">
-                <div class="chart-container" style="height: 250px;">
-                    <div class="d-flex align-items-center justify-content-center h-100 bg-light rounded-3">
-                        <div class="text-center text-muted">
-                            <i class="bi bi-bar-chart display-4 mb-3"></i>
-                            <p>Progress tracking visualization</p>
-                            <small>Showing milestones, project completion, and growth metrics</small>
+                {% if recent_startups %}
+                <div class="row">
+                    {% for startup in recent_startups %}
+                    <div class="col-md-6 mb-3">
+                        <div class="startup-card border rounded-3 p-3 h-100">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0">
+                                    {% if startup.logo %}
+                                    <img src="{{ startup.logo.url }}" 
+                                         alt="{{ startup.name }}" 
+                                         class="rounded-circle"
+                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 60px; height: 60px;">
+                                        <i class="bi bi-building text-white fs-5"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-1">{{ startup.name }}</h6>
+                                    <span class="badge {% if startup.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if startup.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-muted small mb-3">{{ startup.description|truncatewords:15|default:"No description provided" }}</p>
+                            
+                            <div class="row text-center mb-3">
+                                <div class="col-4">
+                                    <div class="metric-value fw-bold text-nest">{{ startup.team_size|default:"0" }}</div>
+                                    <small class="text-muted">Team</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-value fw-bold text-nest">{{ startup.projects.count }}</div>
+                                    <small class="text-muted">Projects</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-value fw-bold text-nest">{{ startup.get_stage_display|default:"Seed" }}</div>
+                                    <small class="text-muted">Stage</small>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'startups:founder_startup_detail' startup.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>View Details
+                                </a>
+                            </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-building display-4 text-muted mb-3"></i>
+                    <h5>No Startups Found</h5>
+                    <p class="text-muted">
+                        {% if total_startups > 0 %}
+                            You have {{ total_startups }} startup{{ total_startups|pluralize }}, but none are recent.
+                        {% else %}
+                            You haven't created any startups yet.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'startups:founder_startup_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Create Your First Startup
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -172,9 +177,11 @@
                     <h5 class="card-title mb-0">
                         <i class="bi bi-kanban text-nest me-2"></i>Recent Projects
                     </h5>
-                    <a href="{% url 'founder:projects' %}" class="btn btn-outline-primary btn-sm">
-                        View All
+                    {% if total_projects > 0 %}
+                    <a href="{% url 'projects:founder_projects' %}" class="btn btn-outline-primary btn-sm">
+                        View All ({{ total_projects }})
                     </a>
+                    {% endif %}
                 </div>
             </div>
             <div class="card-body p-0">
@@ -183,134 +190,64 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Project</th>
+                                <th>Startup</th>
                                 <th>Progress</th>
                                 <th>Due Date</th>
                                 <th>Status</th>
-                                <th>Team</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {% for project in recent_projects %}
                             <tr>
                                 <td>
-                                    <div class="fw-semibold">Product Launch v2.0</div>
-                                    <small class="text-muted">MVP release with new features</small>
+                                    <div class="fw-semibold">{{ project.name }}</div>
+                                    <small class="text-muted">{{ project.description|truncatewords:5|default:"No description" }}</small>
                                 </td>
                                 <td>
-                                    <div class="progress me-2" style="width: 100px; height: 6px;">
-                                        <div class="progress-bar bg-success" style="width: 85%"></div>
-                                    </div>
-                                    <small>85%</small>
+                                    <span class="badge bg-light text-dark">{{ project.startup.name }}</span>
                                 </td>
-                                <td>Dec 15, 2023</td>
-                                <td><span class="badge bg-success">On Track</span></td>
                                 <td>
-                                    <div class="avatar-group">
-                                        <img src="/static/images/avatar4.png" alt="Team" class="rounded-circle" width="24" height="24">
-                                        <img src="/static/images/avatar5.png" alt="Team" class="rounded-circle" width="24" height="24">
-                                        <span class="avatar-count">+3</span>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress me-2" style="width: 80px; height: 6px;">
+                                            <div class="progress-bar bg-{% if project.status == 'completed' %}success{% elif project.status == 'in_progress' %}primary{% else %}warning{% endif %}" 
+                                                 style="width: {{ project.progress }}%"></div>
+                                        </div>
+                                        <small>{{ project.progress }}%</small>
                                     </div>
+                                </td>
+                                <td>
+                                    {% if project.due_date %}
+                                        {{ project.due_date|date:"M d, Y" }}
+                                        {% if project.is_overdue %}
+                                            <small class="text-danger d-block">Overdue</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">No due date</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if project.status == 'completed' %}success{% elif project.status == 'in_progress' %}primary{% elif project.status == 'delayed' %}warning{% else %}secondary{% endif %}">
+                                        {{ project.get_status_display }}
+                                    </span>
                                 </td>
                             </tr>
+                            {% empty %}
                             <tr>
-                                <td>
-                                    <div class="fw-semibold">Series A Preparation</div>
-                                    <small class="text-muted">Funding round documentation</small>
-                                </td>
-                                <td>
-                                    <div class="progress me-2" style="width: 100px; height: 6px;">
-                                        <div class="progress-bar bg-warning" style="width: 45%"></div>
-                                    </div>
-                                    <small>45%</small>
-                                </td>
-                                <td>Jan 30, 2024</td>
-                                <td><span class="badge bg-warning">Needs Attention</span></td>
-                                <td>
-                                    <div class="avatar-group">
-                                        <img src="/static/images/avatar6.png" alt="Team" class="rounded-circle" width="24" height="24">
-                                        <span class="avatar-count">+2</span>
-                                    </div>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="bi bi-kanban display-4 mb-3"></i>
+                                    <p>No projects found</p>
+                                    <small>
+                                        {% if total_startups > 0 %}
+                                            Create your first project to get started
+                                        {% else %}
+                                            Create a startup first to add projects
+                                        {% endif %}
+                                    </small>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <div class="fw-semibold">Market Expansion</div>
-                                    <small class="text-muted">European market entry</small>
-                                </td>
-                                <td>
-                                    <div class="progress me-2" style="width: 100px; height: 6px;">
-                                        <div class="progress-bar bg-info" style="width: 30%"></div>
-                                    </div>
-                                    <small>30%</small>
-                                </td>
-                                <td>Mar 1, 2024</td>
-                                <td><span class="badge bg-info">Planning</span></td>
-                                <td>
-                                    <div class="avatar-group">
-                                        <img src="/static/images/avatar7.png" alt="Team" class="rounded-circle" width="24" height="24">
-                                        <span class="avatar-count">+1</span>
-                                    </div>
-                                </td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Upcoming Deadlines -->
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-calendar-check text-nest me-2"></i>Upcoming Deadlines
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="deadline-list">
-                    <div class="deadline-item d-flex align-items-center justify-content-between p-3 border rounded-3 mb-2">
-                        <div class="d-flex align-items-center">
-                            <div class="deadline-icon bg-danger bg-opacity-10 text-danger rounded-2 p-2 me-3">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Product Testing Phase</div>
-                                <small class="text-muted">Complete QA testing and bug fixes</small>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-semibold text-danger">Due: Dec 10, 2023</div>
-                            <small class="text-muted">2 days left</small>
-                        </div>
-                    </div>
-                    <div class="deadline-item d-flex align-items-center justify-content-between p-3 border rounded-3 mb-2">
-                        <div class="d-flex align-items-center">
-                            <div class="deadline-icon bg-warning bg-opacity-10 text-warning rounded-2 p-2 me-3">
-                                <i class="bi bi-currency-dollar"></i>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Investor Update Report</div>
-                                <small class="text-muted">Monthly performance report</small>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-semibold text-warning">Due: Dec 15, 2023</div>
-                            <small class="text-muted">7 days left</small>
-                        </div>
-                    </div>
-                    <div class="deadline-item d-flex align-items-center justify-content-between p-3 border rounded-3">
-                        <div class="d-flex align-items-center">
-                            <div class="deadline-icon bg-info bg-opacity-10 text-info rounded-2 p-2 me-3">
-                                <i class="bi bi-people"></i>
-                            </div>
-                            <div>
-                                <div class="fw-semibold">Team Quarterly Review</div>
-                                <small class="text-muted">Performance reviews and planning</small>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-semibold text-info">Due: Dec 20, 2023</div>
-                            <small class="text-muted">12 days left</small>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -327,123 +264,178 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{% url 'founder:project_create' %}" class="btn btn-outline-primary text-start">
+                    <a href="{% url 'projects:project_create' %}" class="btn btn-outline-primary text-start">
                         <i class="bi bi-plus-circle me-2"></i>Create Project
                     </a>
-                    <a href="{% url 'founder:funding_apply' %}" class="btn btn-outline-primary text-start">
-                        <i class="bi bi-currency-dollar me-2"></i>Apply for Funding
+                    <a href="{% url 'startups:founder_startup_create' %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-building me-2"></i>Add New Startup
                     </a>
-                    <a href="{% url 'founder:startup_edit' startup.id %}" class="btn btn-outline-primary text-start">
-                        <i class="bi bi-pencil me-2"></i>Update Startup Info
+                    <a href="{% url 'projects:founder_projects' %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-kanban me-2"></i>View All Projects
                     </a>
-                    <a href="{% url 'founder:funding_rounds' %}" class="btn btn-outline-primary text-start">
-                        <i class="bi bi-graph-up me-2"></i>View Funding Status
+                    <a href="{% url 'startups:founder_startup_list' %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-list-ul me-2"></i>Manage Startups
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Team Activity -->
+        <!-- Progress Overview -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-activity text-nest me-2"></i>Team Activity
+                    <i class="bi bi-graph-up text-nest me-2"></i>Progress Overview
                 </h5>
             </div>
             <div class="card-body">
-                <div class="activity-timeline">
-                    <div class="activity-item d-flex mb-3">
-                        <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-check-circle text-success"></i>
+                <div class="progress-stats">
+                    <div class="progress-item mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Project Completion</span>
+                            <span class="small fw-semibold">
+                                {% if total_projects > 0 %}
+                                    {{ completed_projects }}/{{ total_projects }}
+                                {% else %}
+                                    0/0
+                                {% endif %}
+                            </span>
                         </div>
-                        <div class="activity-content">
-                            <div class="fw-semibold">Task Completed</div>
-                            <small class="text-muted">Sarah completed API integration</small>
-                            <div class="text-muted small">2 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item d-flex mb-3">
-                        <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-chat-left-text text-primary"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="fw-semibold">New Comment</div>
-                            <small class="text-muted">Mike commented on design review</small>
-                            <div class="text-muted small">5 hours ago</div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {% if total_projects > 0 %}{% widthratio completed_projects total_projects 100 %}%{% else %}0%{% endif %}">
+                            </div>
                         </div>
                     </div>
-                    <div class="activity-item d-flex mb-3">
-                        <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-file-earmark-plus text-info"></i>
+                    
+                    <div class="progress-item mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">Task Completion</span>
+                            <span class="small fw-semibold">
+                                {% if total_tasks > 0 %}
+                                    {{ completed_tasks }}/{{ total_tasks }}
+                                {% else %}
+                                    0/0
+                                {% endif %}
+                            </span>
                         </div>
-                        <div class="activity-content">
-                            <div class="fw-semibold">Document Added</div>
-                            <small class="text-muted">Lisa uploaded financial model</small>
-                            <div class="text-muted small">1 day ago</div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" 
+                                 style="width: {% if total_tasks > 0 %}{% widthratio completed_tasks total_tasks 100 %}%{% else %}0%{% endif %}">
+                            </div>
                         </div>
                     </div>
-                    <div class="activity-item d-flex">
-                        <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-flag text-warning"></i>
+                    
+                    <div class="progress-item">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">On-time Delivery</span>
+                            <span class="small fw-semibold">
+                                {% if total_tasks > 0 %}
+                                    {% with on_time_tasks=total_tasks|add:"-"|add:overdue_tasks %}
+                                        {{ on_time_tasks }}/{{ total_tasks }}
+                                    {% endwith %}
+                                {% else %}
+                                    0/0
+                                {% endif %}
+                            </span>
                         </div>
-                        <div class="activity-content">
-                            <div class="fw-semibold">Milestone Reached</div>
-                            <small class="text-muted">User growth target achieved</small>
-                            <div class="text-muted small">2 days ago</div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{% if overdue_tasks == 0 %}success{% else %}warning{% endif %}" 
+                                 style="width: {% if total_tasks > 0 %}{% widthratio total_tasks|add:"-"|add:overdue_tasks total_tasks 100 %}%{% else %}0%{% endif %}">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Funding Status -->
+        <!-- Urgent Items -->
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-currency-dollar text-nest me-2"></i>Funding Status
+                    <i class="bi bi-exclamation-triangle text-nest me-2"></i>Attention Needed
                 </h5>
             </div>
             <div class="card-body">
-                <div class="funding-item mb-3">
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                        <span class="fw-semibold">Series A Round</span>
-                        <span class="badge bg-success">Completed</span>
-                    </div>
-                    <div class="d-flex justify-content-between text-muted small">
-                        <span>$8,000,000 raised</span>
-                        <span>Jun 2023</span>
-                    </div>
-                </div>
-                <div class="funding-item mb-3">
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                        <span class="fw-semibold">Seed Extension</span>
-                        <span class="badge bg-info">In Progress</span>
-                    </div>
-                    <div class="d-flex justify-content-between text-muted small">
-                        <span>Target: $2,000,000</span>
-                        <span>Closes Jan 2024</span>
-                    </div>
-                    <div class="progress mt-1" style="height: 4px;">
-                        <div class="progress-bar bg-info" style="width: 60%"></div>
+                {% if overdue_tasks > 0 %}
+                <div class="alert alert-warning mb-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <div>
+                            <strong>{{ overdue_tasks }} overdue task{{ overdue_tasks|pluralize }}</strong>
+                            <div class="small">Requires immediate attention</div>
+                        </div>
                     </div>
                 </div>
-                <div class="text-center mt-3">
-                    <a href="{% url 'founder:funding_apply' %}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-circle me-1"></i>Apply for New Funding
-                    </a>
+                {% endif %}
+                
+                {% if active_projects == 0 and total_startups > 0 %}
+                <div class="alert alert-info mb-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <div>
+                            <strong>No active projects</strong>
+                            <div class="small">Create projects to track progress</div>
+                        </div>
+                    </div>
                 </div>
+                {% endif %}
+                
+                {% if total_startups == 0 %}
+                <div class="alert alert-primary">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-building me-2"></i>
+                        <div>
+                            <strong>Welcome to VentureNest!</strong>
+                            <div class="small">Create your first startup to get started</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if overdue_tasks == 0 and total_startups > 0 and active_projects > 0 %}
+                <div class="alert alert-success">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <div>
+                            <strong>All caught up!</strong>
+                            <div class="small">No urgent items requiring attention</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
+<!-- Debug Information (remove in production) -->
+<div class="mt-4 p-3 bg-light rounded">
+    <small class="text-muted">
+        <strong>Debug Info:</strong> 
+        Total Startups: {{ total_startups }} | 
+        Recent Startups: {{ recent_startups|length }} | 
+        Total Projects: {{ total_projects }} | 
+        Recent Projects: {{ recent_projects|length }}
+    </small>
+</div>
+
 <style>
     .dashboard-card {
         transition: transform 0.2s ease;
+        border-radius: 12px;
     }
 
     .dashboard-card:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .metric-icon {
+        transition: transform 0.2s ease;
+    }
+
+    .dashboard-card:hover .metric-icon {
+        transform: scale(1.1);
     }
 
     .metric-value {
@@ -452,85 +444,53 @@
 
     .progress {
         background-color: #e9ecef;
+        border-radius: 4px;
     }
 
-    .avatar-group {
-        display: flex;
-        align-items: center;
+    .startup-card {
+        transition: all 0.2s ease;
+        border-radius: 8px;
     }
 
-    .avatar-group img {
-        margin-left: -8px;
-        border: 2px solid #fff;
+    .startup-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
-    .avatar-group img:first-child {
-        margin-left: 0;
-    }
-
-    .avatar-count {
-        margin-left: 4px;
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-
-    .deadline-item {
+    .btn-outline-primary {
         transition: all 0.2s ease;
     }
 
-    .deadline-item:hover {
-        background-color: #f8f9fa;
-        transform: translateX(5px);
-    }
-
-    .activity-icon {
-        width: 32px;
-        height: 32px;
-        background: #f8f9fa;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .startup-quick-actions .btn {
-        transition: all 0.2s ease;
-    }
-
-    .startup-quick-actions .btn:hover {
+    .btn-outline-primary:hover {
         transform: translateY(-1px);
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
     }
 </style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Auto-refresh dashboard data
-        setInterval(() => {
-            console.log('Refreshing founder dashboard data...');
-            // In a real app, this would fetch updated metrics
-        }, 30000);
-
-        // Quick action animations
-        document.querySelectorAll('.btn-outline-primary').forEach(btn => {
-            btn.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-1px)';
+        // Add hover effects to dashboard cards
+        document.querySelectorAll('.dashboard-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
             });
-            btn.addEventListener('mouseleave', function() {
+            card.addEventListener('mouseleave', function() {
                 this.style.transform = 'translateY(0)';
             });
         });
 
-        // Deadline countdown
-        function updateDeadlineCountdowns() {
-            const deadlineItems = document.querySelectorAll('.deadline-item');
-            deadlineItems.forEach(item => {
-                const dueText = item.querySelector('.text-danger, .text-warning, .text-info').textContent;
-                // In a real app, this would calculate actual time remaining
-                console.log('Updating countdown for:', dueText);
+        // Add hover effects to startup cards
+        document.querySelectorAll('.startup-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
             });
-        }
-
-        updateDeadlineCountdowns();
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
     });
 </script>
 {% endblock %}

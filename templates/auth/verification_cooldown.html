@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Verification Cooldown - VentureNest{% endblock %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light mt-3">
+  <div class="card shadow-lg rounded-4 border-0 w-100" style="max-width: 520px; margin-top: -50px;">
+    <div class="card-body p-4 text-center">
+      <h2 class="h4 fw-bold mb-3 text-danger">⏳ Please Wait</h2>
+
+      <!-- Public cooldown GIF -->
+      <img src="https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif"
+           alt="Cooldown" class="img-fluid my-3" style="max-height: 200px; border-radius: 12px;">
+
+      <p class="mb-3">
+        You’ve requested too many verification emails in a short period of time.
+        For security reasons, further requests are temporarily disabled.
+      </p>
+
+      {% if user.verification_rate_limit_expiry %}
+        <p class="fw-semibold">
+          You’ll be able to request a new verification email in:<br>
+          <span id="countdown" class="text-primary fs-5 fw-bold"></span>
+        </p>
+
+        <!-- Embed expiry timestamp for JS -->
+        <script>
+          const expiryTime = new Date("{{ user.verification_rate_limit_expiry|date:'c' }}").getTime();
+
+          function updateCountdown() {
+            const now = new Date().getTime();
+            const diff = expiryTime - now;
+
+            if (diff <= 0) {
+              document.getElementById("countdown").innerHTML = "Now!";
+              // Optionally auto-redirect back to verify page
+              setTimeout(() => window.location.href = "{% url 'verify_email_notice' %}", 2000);
+              return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            let text = "";
+            if (hours > 0) text += hours + "h ";
+            if (minutes > 0 || hours > 0) text += minutes + "m ";
+            text += seconds + "s";
+
+            document.getElementById("countdown").innerHTML = text;
+          }
+
+          // Update every second
+          updateCountdown();
+          setInterval(updateCountdown, 1000);
+        </script>
+      {% endif %}
+
+      <a href="{% url 'logout' %}" class="btn btn-outline-secondary mt-3">Log Out</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

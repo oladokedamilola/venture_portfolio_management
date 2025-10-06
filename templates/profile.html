@@ -1,0 +1,403 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}My Profile - VentureNest{% endblock %}
+
+{% block page_title %}My Profile{% endblock %}
+{% block page_subtitle %}Manage your personal information and preferences{% endblock %}
+
+{% block content %}
+<!-- Profile Display Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-circle text-nest me-2"></i>Profile Overview
+                </h5>
+                <button class="btn btn-outline-primary btn-sm" onclick="toggleEditForm()">
+                    <i class="bi bi-pencil me-1"></i>Edit Profile
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Profile Picture & Basic Info -->
+                    <div class="col-md-3 text-center">
+                        <div class="profile-picture-container mb-3">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle shadow-sm" 
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <img src="{% static 'images/default-avatar.png' %}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle shadow-sm" 
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+                            {% endif %}
+                        </div>
+                        <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                        <p class="text-muted mb-2">@{{ user.username }}</p>
+                        <span class="badge bg-nest">{{ user.get_role_display }}</span>
+                    </div>
+                    
+                    <!-- Profile Details -->
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">Email Address</label>
+                                    <p class="mb-0">
+                                        {{ user.email }}
+                                        {% if user.email_verified %}
+                                            <span class="badge bg-success ms-2">Verified</span>
+                                        {% else %}
+                                            <span class="badge bg-warning ms-2">Unverified</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">Phone Number</label>
+                                    <p class="mb-0">{{ user.phone|default:"Not provided" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">First Name</label>
+                                    <p class="mb-0">{{ user.first_name|default:"Not provided" }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">Last Name</label>
+                                    <p class="mb-0">{{ user.last_name|default:"Not provided" }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">Department</label>
+                                    <p class="mb-0">{{ user.department|default:"Not provided" }}</p>
+                                </div>
+                            </div>
+                            {% comment %} <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">Two-Factor Auth</label>
+                                    <p class="mb-0">
+                                        {% if user.two_factor_enabled %}
+                                            <span class="badge bg-success">Enabled</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Disabled</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div> {% endcomment %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Bio</label>
+                            <p class="mb-0">{{ user.bio|default:"No bio provided yet." }}</p>
+                        </div>
+
+                        {% if user.skills %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Skills</label>
+                            <p class="mb-0">{{ user.skills }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Form Section (Initially Hidden) -->
+<div class="row" id="editFormSection" style="display: none;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-gear text-nest me-2"></i>Edit Profile
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" id="profileEditForm">
+                    {% csrf_token %}
+                    
+                    <!-- Display form errors -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Please correct the following errors:</strong>
+                        <ul class="mb-0">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Profile Picture Upload -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="text-center mb-4">
+                                <div class="profile-picture-container mb-3">
+                                    <img src="{% if user.avatar %}{{ user.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
+                                         alt="Profile Picture" 
+                                         class="rounded-circle shadow-sm" 
+                                         id="profile-preview"
+                                         style="width: 120px; height: 120px; object-fit: cover;">
+                                </div>
+                                <div>
+                                    {{ form.avatar }}
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('id_avatar').click()">
+                                        <i class="bi bi-camera me-1"></i>Change Profile Picture
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3 text-nest">
+                                <i class="bi bi-person-badge me-2"></i>Account Information
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_username" class="form-label fw-semibold">Username *</label>
+                                <input type="text" 
+                                       name="username" 
+                                       id="id_username" 
+                                       class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.username.value|default:user.username }}"
+                                       required>
+                                {% if form.username.errors %}
+                                <div class="invalid-feedback">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label fw-semibold">Email Address *</label>
+                                <input type="email" 
+                                       name="email" 
+                                       id="id_email" 
+                                       class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.email.value|default:user.email }}"
+                                       required>
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Details -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3 text-nest">
+                                <i class="bi bi-person-vcard me-2"></i>Personal Details
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_first_name" class="form-label fw-semibold">First Name</label>
+                                <input type="text" 
+                                       name="first_name" 
+                                       id="id_first_name" 
+                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.first_name.value|default:user.first_name }}">
+                                {% if form.first_name.errors %}
+                                <div class="invalid-feedback">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_last_name" class="form-label fw-semibold">Last Name</label>
+                                <input type="text" 
+                                       name="last_name" 
+                                       id="id_last_name" 
+                                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.last_name.value|default:user.last_name }}">
+                                {% if form.last_name.errors %}
+                                <div class="invalid-feedback">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3 text-nest">
+                                <i class="bi bi-briefcase me-2"></i>Professional Information
+                            </h6>
+                        </div>
+                       
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_department" class="form-label fw-semibold">Department</label>
+                                <input type="text" 
+                                       name="department" 
+                                       id="id_department" 
+                                       class="form-control {% if form.department.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.department.value|default:user.department }}"
+                                       placeholder="e.g., Engineering, Marketing">
+                                {% if form.department.errors %}
+                                <div class="invalid-feedback">{{ form.department.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3 text-nest">
+                                <i class="bi bi-telephone me-2"></i>Contact Information
+                            </h6>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="id_phone" class="form-label fw-semibold">Phone Number</label>
+                                <input type="tel" 
+                                       name="phone" 
+                                       id="id_phone" 
+                                       class="form-control {% if form.phone.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.phone.value|default:user.phone }}"
+                                       placeholder="+1 (555) 123-4567">
+                                {% if form.phone.errors %}
+                                <div class="invalid-feedback">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3 text-nest">
+                                <i class="bi bi-file-text me-2"></i>About
+                            </h6>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="id_bio" class="form-label fw-semibold">Bio</label>
+                                <textarea name="bio" 
+                                          id="id_bio" 
+                                          class="form-control {% if form.bio.errors %}is-invalid{% endif %}" 
+                                          rows="4" 
+                                          placeholder="Tell us about yourself and your experience...">{{ form.bio.value|default:user.bio }}</textarea>
+                                <div class="form-text">Brief description about yourself and your role.</div>
+                                {% if form.bio.errors %}
+                                <div class="invalid-feedback">{{ form.bio.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-4">
+                                <label for="id_skills" class="form-label fw-semibold">Skills</label>
+                                <textarea name="skills" 
+                                          id="id_skills" 
+                                          class="form-control {% if form.skills.errors %}is-invalid{% endif %}" 
+                                          rows="3" 
+                                          placeholder="List your skills separated by commas...">{{ form.skills.value|default:user.skills }}</textarea>
+                                <div class="form-text">List your key skills and areas of expertise.</div>
+                                {% if form.skills.errors %}
+                                <div class="invalid-feedback">{{ form.skills.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex gap-2 justify-content-end border-top pt-4">
+                                <button type="button" class="btn btn-outline-secondary" onclick="toggleEditForm()">Cancel</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-1"></i>Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-picture-container {
+        position: relative;
+    }
+
+    .profile-picture-container:hover img {
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--color-nest-green);
+        box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.1);
+    }
+
+    #id_avatar {
+        display: none;
+    }
+
+    .border-bottom {
+        border-color: var(--color-nest-green) !important;
+    }
+</style>
+
+<script>
+    // Toggle edit form visibility
+    function toggleEditForm() {
+        const editSection = document.getElementById('editFormSection');
+        if (editSection.style.display === 'none') {
+            editSection.style.display = 'block';
+            // Scroll to form
+            editSection.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            editSection.style.display = 'none';
+        }
+    }
+
+    // Profile picture preview
+    document.getElementById('id_avatar').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Show edit form if there are form errors
+    document.addEventListener('DOMContentLoaded', function() {
+        const formErrors = document.querySelector('.alert-danger');
+        if (formErrors) {
+            toggleEditForm();
+        }
+    });
+</script>
+{% endblock %}

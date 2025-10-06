@@ -7,17 +7,17 @@
 {% block page_subtitle %}Monitor all your portfolio companies and performance metrics{% endblock %}
 
 {% block page_actions %}
-<div class="btn-group">
+<div class="btn-group mt-4">
     <button class="btn btn-primary btn-sm">
         <i class="bi bi-download me-1"></i>Export Report
     </button>
-    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addStartupModal">
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'startups:manager_startup_create' %}">
         <i class="bi bi-plus-circle me-1"></i>Add Startup
-    </button>
+    </a>
 </div>
 {% endblock %}
 
-{% block user_content %}
+{% block content %}
 <!-- Key Metrics -->
 <div class="row mb-4">
     <div class="col-xl-3 col-md-6">
@@ -30,14 +30,22 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h3 class="mb-0 fw-bold">24</h3>
+                        <h3 class="mb-0 fw-bold">{{ total_startups }}</h3>
                         <span class="text-muted">Total Startups</span>
                     </div>
                 </div>
                 <div class="mt-2">
+                    {% with new_startups_this_month=recent_startups.count %}
+                    {% if new_startups_this_month > 0 %}
                     <span class="text-success small">
-                        <i class="bi bi-arrow-up"></i> 3 new this month
+                        <i class="bi bi-arrow-up"></i> {{ new_startups_this_month }} new this month
                     </span>
+                    {% else %}
+                    <span class="text-muted small">
+                        No new startups this month
+                    </span>
+                    {% endif %}
+                    {% endwith %}
                 </div>
             </div>
         </div>
@@ -48,18 +56,26 @@
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
                         <div class="metric-icon bg-success bg-opacity-10 text-success rounded-3 p-3">
-                            <i class="bi bi-currency-dollar fs-4"></i>
+                            <i class="bi bi-kanban fs-4"></i>
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h3 class="mb-0 fw-bold">$156M</h3>
-                        <span class="text-muted">Total Funding</span>
+                        <h3 class="mb-0 fw-bold">{{ total_projects }}</h3>
+                        <span class="text-muted">Total Projects</span>
                     </div>
                 </div>
                 <div class="mt-2">
+                    {% if total_projects > 0 %}
+                    {% with completion_rate=completed_projects|default:0|floatformat:0 %}
                     <span class="text-success small">
-                        <i class="bi bi-arrow-up"></i> 12% growth
+                        <i class="bi bi-check-circle"></i> {{ completion_rate }}% completed
                     </span>
+                    {% endwith %}
+                    {% else %}
+                    <span class="text-muted small">
+                        No projects yet
+                    </span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -70,18 +86,26 @@
                 <div class="d-flex align-items-center">
                     <div class="flex-shrink-0">
                         <div class="metric-icon bg-warning bg-opacity-10 text-warning rounded-3 p-3">
-                            <i class="bi bi-graph-up fs-4"></i>
+                            <i class="bi bi-list-task fs-4"></i>
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h3 class="mb-0 fw-bold">78%</h3>
-                        <span class="text-muted">On Track</span>
+                        <h3 class="mb-0 fw-bold">{{ total_tasks }}</h3>
+                        <span class="text-muted">Total Tasks</span>
                     </div>
                 </div>
                 <div class="mt-2">
+                    {% if total_tasks > 0 %}
+                    {% with task_completion_rate=completed_tasks|default:0|floatformat:0 %}
                     <span class="text-success small">
-                        <i class="bi bi-arrow-up"></i> 5% improvement
+                        <i class="bi bi-arrow-up"></i> {{ task_completion_rate }}% completed
                     </span>
+                    {% endwith %}
+                    {% else %}
+                    <span class="text-muted small">
+                        No tasks yet
+                    </span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -96,14 +120,20 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h3 class="mb-0 fw-bold">5</h3>
-                        <span class="text-muted">Needs Attention</span>
+                        <h3 class="mb-0 fw-bold">{{ overdue_tasks }}</h3>
+                        <span class="text-muted">Overdue Tasks</span>
                     </div>
                 </div>
                 <div class="mt-2">
+                    {% if overdue_tasks > 0 %}
                     <span class="text-danger small">
-                        <i class="bi bi-arrow-down"></i> 2 critical
+                        <i class="bi bi-arrow-down"></i> Needs attention
                     </span>
+                    {% else %}
+                    <span class="text-success small">
+                        <i class="bi bi-check-circle"></i> All caught up
+                    </span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -121,11 +151,18 @@
             </div>
             <div class="card-body">
                 <div class="chart-container" style="height: 300px;">
-                    <!-- Chart would go here -->
                     <div class="d-flex align-items-center justify-content-center h-100 bg-light rounded-3">
                         <div class="text-center text-muted">
                             <i class="bi bi-bar-chart display-4 mb-3"></i>
-                            <p>Performance chart visualization</p>
+                            <p>Performance Metrics</p>
+                            <div class="row text-start mt-3">
+                                <div class="col-6">
+                                    <small>Active Projects: <strong>{{ active_projects }}</strong></small>
+                                </div>
+                                <div class="col-6">
+                                    <small>Completed: <strong>{{ completed_projects }}</strong></small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -139,7 +176,7 @@
                     <h5 class="card-title mb-0">
                         <i class="bi bi-building text-nest me-2"></i>Recent Startups
                     </h5>
-                    <a href="{% url 'manager:startup_list' %}" class="btn btn-outline-primary btn-sm">
+                    <a href="{% url 'startups:manager_startup_list' %}" class="btn btn-outline-primary btn-sm">
                         View All
                     </a>
                 </div>
@@ -151,72 +188,60 @@
                             <tr>
                                 <th>Startup</th>
                                 <th>Stage</th>
-                                <th>Progress</th>
+                                <th>Projects</th>
                                 <th>Status</th>
-                                <th>Last Update</th>
+                                <th>Created</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {% for startup in recent_startups %}
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img src="/static/images/startup1.png" alt="TechFlow" class="rounded-circle me-2" width="32" height="32">
+                                        {% if startup.logo %}
+                                        <img src="{{ startup.logo.url }}" alt="{{ startup.name }}" class="rounded-circle me-2" width="32" height="32">
+                                        {% else %}
+                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-building text-white"></i>
+                                        </div>
+                                        {% endif %}
                                         <div>
-                                            <div class="fw-semibold">TechFlow AI</div>
-                                            <small class="text-muted">Enterprise SaaS</small>
+                                            <div class="fw-semibold">{{ startup.name }}</div>
+                                            <small class="text-muted">{{ startup.industry|default:"No industry" }}</small>
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="badge bg-primary">Series A</span></td>
                                 <td>
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar bg-success" style="width: 85%"></div>
-                                    </div>
-                                    <small class="text-muted">85%</small>
+                                    {% if startup.stage %}
+                                    <span class="badge bg-{% if startup.stage == 'seed' %}warning{% elif startup.stage == 'series_a' %}primary{% elif startup.stage == 'series_b' %}info{% else %}secondary{% endif %}">
+                                        {{ startup.get_stage_display }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Not set</span>
+                                    {% endif %}
                                 </td>
-                                <td><span class="badge bg-success">On Track</span></td>
-                                <td>2 days ago</td>
+                                <td>
+                                    <small class="text-muted">{{ startup.projects.count }} projects</small>
+                                </td>
+                                <td>
+                                    {% if startup.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ startup.created_at|date:"M d, Y" }}</small>
+                                </td>
                             </tr>
+                            {% empty %}
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/static/images/startup2.png" alt="GreenTech" class="rounded-circle me-2" width="32" height="32">
-                                        <div>
-                                            <div class="fw-semibold">GreenTech Solutions</div>
-                                            <small class="text-muted">Clean Energy</small>
-                                        </div>
-                                    </div>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="bi bi-building display-4 mb-2"></i>
+                                    <p>No startups found</p>
                                 </td>
-                                <td><span class="badge bg-warning">Seed</span></td>
-                                <td>
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar bg-warning" style="width: 45%"></div>
-                                    </div>
-                                    <small class="text-muted">45%</small>
-                                </td>
-                                <td><span class="badge bg-warning">Needs Review</span></td>
-                                <td>1 week ago</td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/static/images/startup3.png" alt="HealthTech" class="rounded-circle me-2" width="32" height="32">
-                                        <div>
-                                            <div class="fw-semibold">HealthTech Labs</div>
-                                            <small class="text-muted">Healthcare</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-info">Series B</span></td>
-                                <td>
-                                    <div class="progress" style="height: 6px; width: 100px;">
-                                        <div class="progress-bar bg-success" style="width: 92%"></div>
-                                    </div>
-                                    <small class="text-muted">92%</small>
-                                </td>
-                                <td><span class="badge bg-success">Ahead</span></td>
-                                <td>3 days ago</td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -235,21 +260,22 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{% url 'manager:startup_create' %}" class="btn btn-outline-primary text-start">
+                    <a href="{% url 'startups:manager_startup_create' %}" class="btn btn-outline-primary text-start">
                         <i class="bi bi-plus-circle me-2"></i>Add New Startup
                     </a>
-                    <a href="{% url 'manager:funding_rounds' %}" class="btn btn-outline-primary text-start">
+                    <a href="{% url 'funding:manager_funding_rounds' %}" class="btn btn-outline-primary text-start">
                         <i class="bi bi-currency-dollar me-2"></i>Manage Funding Rounds
                     </a>
-                    <a href="{% url 'manager:reports' %}" class="btn btn-outline-primary text-start">
+                    <a href="{% url 'reports:manager_reports' %}" class="btn btn-outline-primary text-start">
                         <i class="bi bi-graph-up me-2"></i>Generate Reports
                     </a>
-                    <a href="{% url 'manager:projects' %}" class="btn btn-outline-primary text-start">
+                    <a href="{% url 'projects:manager_projects' %}" class="btn btn-outline-primary text-start">
                         <i class="bi bi-kanban me-2"></i>View All Projects
                     </a>
                 </div>
             </div>
         </div>
+
 
         <!-- Recent Activity -->
         <div class="card shadow-sm border-0 mb-4">
@@ -260,36 +286,36 @@
             </div>
             <div class="card-body">
                 <div class="activity-timeline">
+                    {% for project in recent_projects %}
                     <div class="activity-item d-flex mb-3">
                         <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-currency-dollar text-success"></i>
+                            <i class="bi bi-kanban text-primary"></i>
                         </div>
                         <div class="activity-content">
-                            <div class="fw-semibold">Funding round closed</div>
-                            <small class="text-muted">TechFlow AI raised $8M Series A</small>
-                            <div class="text-muted small">2 hours ago</div>
+                            <div class="fw-semibold">New Project</div>
+                            <small class="text-muted">{{ project.name }} - {{ project.startup.name }}</small>
+                            <div class="text-muted small">{{ project.created_at|date:"M d, Y" }}</div>
                         </div>
                     </div>
-                    <div class="activity-item d-flex mb-3">
-                        <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-check-circle text-primary"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="fw-semibold">Milestone completed</div>
-                            <small class="text-muted">GreenTech reached MVP development</small>
-                            <div class="text-muted small">1 day ago</div>
-                        </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-clock display-4 mb-2"></i>
+                        <p>No recent activity</p>
                     </div>
+                    {% endfor %}
+                    
+                    {% if overdue_tasks > 0 %}
                     <div class="activity-item d-flex mb-3">
                         <div class="activity-icon flex-shrink-0 me-3">
                             <i class="bi bi-exclamation-triangle text-warning"></i>
                         </div>
                         <div class="activity-content">
                             <div class="fw-semibold">Attention needed</div>
-                            <small class="text-muted">HealthTech Labs behind schedule</small>
-                            <div class="text-muted small">2 days ago</div>
+                            <small class="text-muted">{{ overdue_tasks }} overdue task{{ overdue_tasks|pluralize }}</small>
+                            <div class="text-muted small">Requires immediate action</div>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -298,31 +324,36 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-pie-chart text-nest me-2"></i>Portfolio Distribution
+                    <i class="bi bi-pie-chart text-nest me-2"></i>Portfolio Summary
                 </h5>
             </div>
             <div class="card-body">
                 <div class="distribution-chart mb-3">
-                    <!-- Chart would go here -->
                     <div class="d-flex align-items-center justify-content-center bg-light rounded-3 py-4">
                         <div class="text-center text-muted">
                             <i class="bi bi-pie-chart display-4 mb-2"></i>
-                            <p>Portfolio distribution chart</p>
+                            <p>Portfolio Overview</p>
                         </div>
                     </div>
                 </div>
                 <div class="distribution-stats">
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Seed Stage</span>
-                        <span class="fw-semibold">8 companies</span>
+                        <span>Total Startups</span>
+                        <span class="fw-semibold">{{ total_startups }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Series A</span>
-                        <span class="fw-semibold">12 companies</span>
+                        <span>Active Projects</span>
+                        <span class="fw-semibold">{{ active_projects }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Completed Tasks</span>
+                        <span class="fw-semibold">{{ completed_tasks }}/{{ total_tasks }}</span>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span>Series B+</span>
-                        <span class="fw-semibold">4 companies</span>
+                        <span>Overdue Tasks</span>
+                        <span class="fw-semibold {% if overdue_tasks > 0 %}text-danger{% endif %}">
+                            {{ overdue_tasks }}
+                        </span>
                     </div>
                 </div>
             </div>

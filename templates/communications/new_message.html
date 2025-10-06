@@ -1,0 +1,159 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}New Message - VentureNest{% endblock %}
+
+{% block page_title %}New Message{% endblock %}
+{% block page_subtitle %}Start a new conversation{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'messages' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to Messages
+</a>
+{% endblock %}
+
+{% block user_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">Start New Conversation</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Recipient</label>
+                        <select class="form-select form-select-lg" name="recipient_id" required>
+                            <option value="">Select a user to message...</option>
+                            {% for user in available_users %}
+                            <option value="{{ user.id }}">
+                                {{ user.get_full_name }} ({{ user.get_role_display }})
+                                {% if user.email %} - {{ user.email }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Choose who you want to message</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Your Message</label>
+                        <textarea class="form-control" name="content" rows="6" placeholder="Type your message here..." required></textarea>
+                        <div class="form-text">Write your message to start the conversation</div>
+                    </div>
+                    
+                    <input type="hidden" name="conversation_type" value="direct">
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'messages' %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>Send Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Available Users List -->
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0">Available Contacts</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% for user in available_users %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border h-100">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    {% if user.avatar %}
+                                        <img src="{{ user.avatar.url }}" alt="{{ user.get_full_name }}" 
+                                             class="rounded-circle" width="60" height="60" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white mx-auto" 
+                                             style="width: 60px; height: 60px;">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <h6 class="card-title mb-1">{{ user.get_full_name }}</h6>
+                                <p class="text-muted small mb-2">{{ user.get_role_display }}</p>
+                                <button type="button" class="btn btn-outline-primary btn-sm" 
+                                        onclick="selectUser({{ user.id }}, '{{ user.get_full_name }}')">
+                                    Select
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-4">
+                        <i class="bi bi-people display-4 text-muted mb-3"></i>
+                        <p class="text-muted">No users available to message</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectUser(userId, userName) {
+    // Set the selected user in the dropdown
+    const select = document.querySelector('select[name="recipient_id"]');
+    select.value = userId;
+    
+    // Scroll to the form
+    select.scrollIntoView({ behavior: 'smooth' });
+    
+    // Show confirmation
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-info alert-dismissible fade show mt-3';
+    alertDiv.innerHTML = `
+        <i class="bi bi-check-circle me-2"></i>
+        Selected: <strong>${userName}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.querySelector('form').prepend(alertDiv);
+    
+    // Focus on message textarea
+    document.querySelector('textarea[name="content"]').focus();
+}
+
+// Auto-focus on recipient select
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('select[name="recipient_id"]').focus();
+});
+</script>
+
+<style>
+.card {
+    border-radius: 1rem;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+.form-select, .form-control {
+    border-radius: 0.75rem;
+}
+
+.btn {
+    border-radius: 0.75rem;
+}
+</style>
+{% endblock %}

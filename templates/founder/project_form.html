@@ -1,0 +1,315 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}{% if editing %}Edit{% else %}Create{% endif %} Project - VentureNest{% endblock %}
+
+{% block page_title %}{% if editing %}Edit{% else %}Create New{% endif %} Project{% endblock %}
+{% block page_subtitle %}{% if editing %}Update project details{% else %}Add a new project to your venture portfolio{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        {% if editing %}Edit Project Details{% else %}Project Details{% endif %}
+                    </h5>
+                    {% if editing %}
+                    <span class="badge bg-{% if project.priority == 'high' %}danger{% elif project.priority == 'medium' %}warning{% else %}info{% endif %}">
+                        {{ project.get_priority_display }} Priority
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate id="projectForm">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Project Name -->
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                Project Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                Description <span class="text-danger">*</span>
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Startup -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.startup.id_for_label }}" class="form-label">
+                                Startup <span class="text-danger">*</span>
+                            </label>
+                            {{ form.startup }}
+                            {% if form.startup.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.startup.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if editing %}
+                            <div class="form-text text-warning">
+                                <i class="bi bi-info-circle"></i> Startup cannot be changed after creation
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                Status
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.status.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Priority -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                Priority
+                            </label>
+                            {{ form.priority }}
+                            {% if form.priority.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.priority.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Progress -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.progress.id_for_label }}" class="form-label">
+                                Progress (%)
+                            </label>
+                            {{ form.progress }}
+                            {% if form.progress.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.progress.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Budget -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.budget.id_for_label }}" class="form-label">
+                                Budget ($)
+                            </label>
+                            {{ form.budget }}
+                            {% if form.budget.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.budget.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Start Date -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                Start Date
+                            </label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.start_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Due Date -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                Due Date
+                            </label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.due_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% if editing %}{% if request.user.role == 'manager' %}{% url 'projects:manager_projects' %}{% else %}{% url 'projects:founder_project_detail' project.pk %}{% endif %}{% else %}{% if request.user.role == 'manager' %}{% url 'projects:manager_projects' %}{% else %}{% url 'projects:founder_projects' %}{% endif %}{% endif %}" 
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        <div class="d-flex gap-2">
+                            {% if editing and request.user.role in 'founder manager' %}
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi {% if editing %}bi-check-circle{% else %}bi-plus-circle{% endif %} me-1"></i>
+                                {% if editing %}Update{% else %}Create{% endif %} Project
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal (Only for editing and founders/managers) -->
+{% if editing and request.user.role in 'founder manager' %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the project "<strong>{{ project.name }}</strong>"?</p>
+                <p class="text-danger"><small>This action cannot be undone. All tasks associated with this project will also be deleted.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'projects:project_delete' project.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Project</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card {
+        border-radius: 0.5rem;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap classes to form elements
+        const formElements = document.querySelectorAll('input, select, textarea');
+        formElements.forEach(element => {
+            if (!element.classList.contains('btn') && !element.classList.contains('form-check-input')) {
+                element.classList.add('form-control');
+            }
+        });
+
+        // Special handling for select elements
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            if (!select.multiple) { // Don't add form-select to multiple selects
+                select.classList.add('form-select');
+            }
+        });
+
+        // Form submission validation
+        const projectForm = document.getElementById('projectForm');
+        projectForm.addEventListener('submit', function(e) {
+            // Validate required fields
+            const requiredFields = projectForm.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+                return;
+            }
+        });
+
+        // Date validation
+        const startDate = document.getElementById('{{ form.start_date.id_for_label }}');
+        const dueDate = document.getElementById('{{ form.due_date.id_for_label }}');
+        
+        function validateDates() {
+            if (startDate && dueDate && startDate.value && dueDate.value) {
+                const start = new Date(startDate.value);
+                const due = new Date(dueDate.value);
+                
+                if (due < start) {
+                    dueDate.setCustomValidity('Due date must be after start date');
+                    dueDate.classList.add('is-invalid');
+                } else {
+                    dueDate.setCustomValidity('');
+                    dueDate.classList.remove('is-invalid');
+                }
+            }
+        }
+        
+        if (startDate && dueDate) {
+            startDate.addEventListener('change', validateDates);
+            dueDate.addEventListener('change', validateDates);
+        }
+    });
+</script>
+{% endblock %}

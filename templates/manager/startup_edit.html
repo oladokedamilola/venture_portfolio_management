@@ -8,16 +8,16 @@
 
 {% block page_actions %}
 <div class="btn-group">
-    <a href="{% url 'manager:startup_detail' startup.id %}" class="btn btn-outline-primary btn-sm">
+     <a href="{% url 'startups:manager_startup_detail' startup.id %}" class="btn btn-outline-primary btn-sm">
         <i class="bi bi-eye me-1"></i>View Details
-    </a>
-    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
-        <i class="bi bi-trash me-1"></i>Delete
-    </button>
+    </a> 
+    <a href="{% url 'startups:manager_startup_delete' startup.id %}" class="btn btn-outline-danger btn-sm">
+    <i class="bi bi-trash me-1"></i>Delete
+</a>
 </div>
 {% endblock %}
 
-{% block user_content %}
+{% block content %}
 <div class="row">
     <div class="col-lg-8">
         <div class="card shadow-sm border-0">
@@ -43,8 +43,11 @@
                                    name="name" 
                                    id="id_name" 
                                    class="form-control" 
-                                   value="{{ startup.name }}"
+                                   value="{{ form.name.value|default:startup.name }}"
                                    required>
+                            {% if form.name.errors %}
+                            <div class="text-danger small">{{ form.name.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <!-- Logo -->
@@ -52,11 +55,19 @@
                             <label for="id_logo" class="form-label fw-semibold">Company Logo</label>
                             <div class="d-flex align-items-center">
                                 <div class="logo-preview me-3">
-                                    <img src="{{ startup.logo.url|default:'/static/images/default-startup.png' }}" 
+                                    {% if startup.logo %}
+                                    <img src="{{ startup.logo.url }}" 
                                          alt="Logo preview" 
                                          class="rounded border" 
                                          id="logo-preview"
                                          style="width: 80px; height: 80px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="rounded border bg-light d-flex align-items-center justify-content-center" 
+                                         id="logo-preview"
+                                         style="width: 80px; height: 80px;">
+                                        <i class="bi bi-building text-muted"></i>
+                                    </div>
+                                    {% endif %}
                                 </div>
                                 <div class="flex-grow-1">
                                     <input type="file" 
@@ -65,12 +76,17 @@
                                            class="form-control" 
                                            accept="image/*">
                                     <div class="form-text">
+                                        {% if startup.logo %}
                                         <button type="button" class="btn btn-sm btn-outline-danger mt-1" id="removeLogo">
                                             <i class="bi bi-trash me-1"></i>Remove Logo
                                         </button>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
+                            {% if form.logo.errors %}
+                            <div class="text-danger small">{{ form.logo.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <!-- Description -->
@@ -80,8 +96,11 @@
                                       id="id_description" 
                                       class="form-control" 
                                       rows="4"
-                                      required>{{ startup.description }}</textarea>
+                                      required>{{ form.description.value|default:startup.description }}</textarea>
                             <div class="form-text">Provide a clear overview of what the startup does.</div>
+                            {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -97,14 +116,15 @@
                                     <label for="id_industry" class="form-label fw-semibold">Industry *</label>
                                     <select name="industry" id="id_industry" class="form-select" required>
                                         <option value="">Select Industry</option>
-                                        <option value="technology" {% if startup.industry == 'technology' %}selected{% endif %}>Technology</option>
-                                        <option value="healthcare" {% if startup.industry == 'healthcare' %}selected{% endif %}>Healthcare</option>
-                                        <option value="clean-energy" {% if startup.industry == 'clean-energy' %}selected{% endif %}>Clean Energy</option>
-                                        <option value="fintech" {% if startup.industry == 'fintech' %}selected{% endif %}>Fintech</option>
-                                        <option value="ecommerce" {% if startup.industry == 'ecommerce' %}selected{% endif %}>E-commerce</option>
-                                        <option value="education" {% if startup.industry == 'education' %}selected{% endif %}>Education</option>
-                                        <option value="other" {% if startup.industry == 'other' %}selected{% endif %}>Other</option>
+                                        {% for value, label in form.fields.industry.choices %}
+                                            {% if value %}
+                                            <option value="{{ value }}" {% if form.industry.value|default:startup.industry == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endif %}
+                                        {% endfor %}
                                     </select>
+                                    {% if form.industry.errors %}
+                                    <div class="text-danger small">{{ form.industry.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -112,12 +132,15 @@
                                     <label for="id_stage" class="form-label fw-semibold">Funding Stage *</label>
                                     <select name="stage" id="id_stage" class="form-select" required>
                                         <option value="">Select Stage</option>
-                                        <option value="pre-seed" {% if startup.stage == 'pre-seed' %}selected{% endif %}>Pre-Seed</option>
-                                        <option value="seed" {% if startup.stage == 'seed' %}selected{% endif %}>Seed</option>
-                                        <option value="series-a" {% if startup.stage == 'series-a' %}selected{% endif %}>Series A</option>
-                                        <option value="series-b" {% if startup.stage == 'series-b' %}selected{% endif %}>Series B</option>
-                                        <option value="series-c" {% if startup.stage == 'series-c' %}selected{% endif %}>Series C+</option>
+                                        {% for value, label in form.fields.stage.choices %}
+                                            {% if value %}
+                                            <option value="{{ value }}" {% if form.stage.value|default:startup.stage == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endif %}
+                                        {% endfor %}
                                     </select>
+                                    {% if form.stage.errors %}
+                                    <div class="text-danger small">{{ form.stage.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -125,23 +148,30 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="id_status" class="form-label fw-semibold">Status</label>
-                                    <select name="status" id="id_status" class="form-select">
-                                        <option value="on_track" {% if startup.status == 'on_track' %}selected{% endif %}>On Track</option>
-                                        <option value="needs_review" {% if startup.status == 'needs_review' %}selected{% endif %}>Needs Review</option>
-                                        <option value="at_risk" {% if startup.status == 'at_risk' %}selected{% endif %}>At Risk</option>
-                                        <option value="paused" {% if startup.status == 'paused' %}selected{% endif %}>Paused</option>
-                                    </select>
+                                    <label for="id_location" class="form-label fw-semibold">Location *</label>
+                                    <input type="text" 
+                                           name="location" 
+                                           id="id_location" 
+                                           class="form-control" 
+                                           value="{{ form.location.value|default:startup.location }}"
+                                           required>
+                                    {% if form.location.errors %}
+                                    <div class="text-danger small">{{ form.location.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="id_founded_date" class="form-label fw-semibold">Founded Date</label>
+                                    <label for="id_founding_date" class="form-label fw-semibold">Founding Date *</label>
                                     <input type="date" 
-                                           name="founded_date" 
-                                           id="id_founded_date" 
+                                           name="founding_date" 
+                                           id="id_founding_date" 
                                            class="form-control"
-                                           value="{{ startup.founded_date|date:'Y-m-d' }}">
+                                           value="{{ form.founding_date.value|default:startup.founding_date|date:'Y-m-d' }}"
+                                           required>
+                                    {% if form.founding_date.errors %}
+                                    <div class="text-danger small">{{ form.founding_date.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -154,8 +184,11 @@
                                            name="website" 
                                            id="id_website" 
                                            class="form-control" 
-                                           value="{{ startup.website }}"
+                                           value="{{ form.website.value|default:startup.website }}"
                                            placeholder="https://example.com">
+                                    {% if form.website.errors %}
+                                    <div class="text-danger small">{{ form.website.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -165,10 +198,27 @@
                                            name="team_size" 
                                            id="id_team_size" 
                                            class="form-control" 
-                                           value="{{ startup.team_size }}"
+                                           value="{{ form.team_size.value|default:startup.team_size }}"
                                            min="1">
+                                    {% if form.team_size.errors %}
+                                    <div class="text-danger small">{{ form.team_size.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Market Description -->
+                        <div class="mb-3">
+                            <label for="id_market" class="form-label fw-semibold">Market Description *</label>
+                            <textarea name="market" 
+                                      id="id_market" 
+                                      class="form-control" 
+                                      rows="3"
+                                      required>{{ form.market.value|default:startup.market }}</textarea>
+                            <div class="form-text">Describe your target market, customers, and opportunity.</div>
+                            {% if form.market.errors %}
+                            <div class="text-danger small">{{ form.market.errors }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -188,103 +238,85 @@
                                                name="valuation" 
                                                id="id_valuation" 
                                                class="form-control" 
-                                               value="{{ startup.valuation }}"
-                                               placeholder="8000000">
-                                        <span class="input-group-text">.00</span>
+                                               value="{{ form.valuation.value|default:startup.valuation }}"
+                                               step="0.01"
+                                               min="0">
                                     </div>
+                                    {% if form.valuation.errors %}
+                                    <div class="text-danger small">{{ form.valuation.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="id_amount_raised" class="form-label fw-semibold">Total Raised ($)</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" 
-                                               name="amount_raised" 
-                                               id="id_amount_raised" 
-                                               class="form-control" 
-                                               value="{{ startup.amount_raised }}"
-                                               placeholder="2000000">
-                                        <span class="input-group-text">.00</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="id_monthly_revenue" class="form-label fw-semibold">Monthly Revenue ($)</label>
-                                    <input type="number" 
-                                           name="monthly_revenue" 
-                                           id="id_monthly_revenue" 
-                                           class="form-control" 
-                                           value="{{ startup.monthly_revenue }}"
-                                           placeholder="125000">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="id_burn_rate" class="form-label fw-semibold">Monthly Burn Rate ($)</label>
-                                    <input type="number" 
-                                           name="burn_rate" 
-                                           id="id_burn_rate" 
-                                           class="form-control" 
-                                           value="{{ startup.burn_rate }}"
-                                           placeholder="85000">
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" 
+                                               name="monthly_revenue" 
+                                               id="id_monthly_revenue" 
+                                               class="form-control" 
+                                               value="{{ form.monthly_revenue.value|default:startup.monthly_revenue }}"
+                                               step="0.01"
+                                               min="0">
+                                    </div>
+                                    {% if form.monthly_revenue.errors %}
+                                    <div class="text-danger small">{{ form.monthly_revenue.errors }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Team Management -->
+                    <!-- Founder Information -->
                     <div class="mb-4">
                         <h6 class="mb-3 text-nest">
-                            <i class="bi bi-people me-2"></i>Team Management
+                            <i class="bi bi-person me-2"></i>Founder Information
                         </h6>
                         
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Team Members</label>
-                            <div id="teamMembersList" class="mb-3">
-                                {% for member in startup.team_members.all %}
-                                <div class="team-member-item d-flex align-items-center justify-content-between p-2 border rounded-3 mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <img src="{{ member.user.profile.image.url|default:'/static/images/default-avatar.png' }}" 
-                                             alt="{{ member.user.get_full_name }}" 
-                                             class="rounded-circle me-2" 
-                                             width="32" 
-                                             height="32">
-                                        <div>
-                                            <div class="fw-semibold">{{ member.user.get_full_name }}</div>
-                                            <small class="text-muted">{{ member.role }}</small>
-                                        </div>
+                            <label class="form-label fw-semibold">Current Founder</label>
+                            <div class="p-3 border rounded-3 bg-light">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="bi bi-person text-white"></i>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger remove-member" data-member-id="{{ member.id }}">
-                                        <i class="bi bi-x"></i>
-                                    </button>
+                                    <div>
+                                        <div class="fw-semibold">
+                                            {% if startup.founder %}
+                                                {{ startup.founder.get_full_name|default:startup.founder.username }}
+                                            {% else %}
+                                                No founder assigned
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">Founder & CEO</small>
+                                        {% if startup.founder %}
+                                        <div class="mt-1">
+                                            <span class="text-muted small">
+                                                <i class="bi bi-envelope me-1"></i>{{ startup.founder.email }}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                {% endfor %}
                             </div>
-                            
-                            <div class="d-flex gap-2">
-                                <select class="form-select" id="addMemberSelect">
-                                    <option value="">Select user to add...</option>
-                                    <option value="1">Alex Chen (Founder)</option>
-                                    <option value="2">Sarah Johnson (CTO)</option>
-                                    <option value="3">Mike Rodriguez (Advisor)</option>
-                                </select>
-                                <button type="button" class="btn btn-outline-primary" id="addMemberBtn">
-                                    <i class="bi bi-plus"></i> Add
-                                </button>
+                            <div class="form-text mt-2">
+                                <small class="text-muted">
+                                    Founder assignment is managed automatically when startups are created.
+                                    {% if not startup.founder %}
+                                    <span class="text-warning">No founder currently assigned to this startup.</span>
+                                    {% endif %}
+                                </small>
                             </div>
                         </div>
                     </div>
 
                     <!-- Form Actions -->
                     <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                        <a href="{% url 'manager:startup_detail' startup.id %}" class="btn btn-outline-secondary">
+                         <a href="{% url 'startups:manager_startup_detail' startup.id %}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left me-1"></i>Cancel
-                        </a>
+                        </a> 
                         <div class="d-flex gap-2">
                             <button type="button" class="btn btn-outline-primary" id="previewBtn">
                                 <i class="bi bi-eye me-1"></i>Preview
@@ -301,29 +333,34 @@
 
     <!-- Sidebar -->
     <div class="col-lg-4">
-        <!-- Change History -->
+        <!-- Startup Summary -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
                 <h6 class="card-title mb-0">
-                    <i class="bi bi-clock-history text-nest me-2"></i>Recent Changes
+                    <i class="bi bi-info-circle text-nest me-2"></i>Startup Summary
                 </h6>
             </div>
             <div class="card-body">
-                <div class="change-history">
-                    <div class="change-item mb-3">
-                        <div class="fw-semibold">Valuation Updated</div>
-                        <small class="text-muted">$7M → $8M</small>
-                        <div class="text-muted small">By John Doe • 2 days ago</div>
+                <div class="startup-summary">
+                    <div class="summary-item mb-2">
+                        <small class="text-muted">Created</small>
+                        <div class="fw-semibold">{{ startup.created_at|date:"M d, Y" }}</div>
                     </div>
-                    <div class="change-item mb-3">
-                        <div class="fw-semibold">Status Changed</div>
-                        <small class="text-muted">On Track → Needs Review</small>
-                        <div class="text-muted small">By Sarah Chen • 1 week ago</div>
+                    <div class="summary-item mb-2">
+                        <small class="text-muted">Last Updated</small>
+                        <div class="fw-semibold">{{ startup.updated_at|timesince }} ago</div>
                     </div>
-                    <div class="change-item">
-                        <div class="fw-semibold">Team Member Added</div>
-                        <small class="text-muted">Mike Rodriguez (Advisor)</small>
-                        <div class="text-muted small">By Alex Chen • 2 weeks ago</div>
+                    <div class="summary-item mb-2">
+                        <small class="text-muted">Status</small>
+                        <div>
+                            <span class="badge {% if startup.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if startup.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="summary-item">
+                        <small class="text-muted">Projects</small>
+                        <div class="fw-semibold">{{ startup.projects.count }}</div>
                     </div>
                 </div>
             </div>
@@ -338,11 +375,11 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{% url 'manager:funding_rounds' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
-                        <i class="bi bi-currency-dollar me-2"></i>Add Funding Round
+                    <a href="{% url 'funding:manager_funding_rounds' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-currency-dollar me-2"></i>Manage Funding
                     </a>
-                    <a href="{% url 'manager:projects' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
-                        <i class="bi bi-kanban me-2"></i>Create Project
+                    <a href="{% url 'projects:manager_projects' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-kanban me-2"></i>View Projects
                     </a>
                     <a href="#" class="btn btn-outline-primary text-start">
                         <i class="bi bi-file-earmark-text me-2"></i>Generate Report
@@ -398,20 +435,12 @@
         transition: opacity 0.3s ease;
     }
 
-    .team-member-item {
-        transition: background-color 0.2s ease;
-    }
-
-    .team-member-item:hover {
-        background-color: #f8f9fa;
-    }
-
-    .change-item {
-        padding-bottom: 0.75rem;
+    .summary-item {
+        padding-bottom: 0.5rem;
         border-bottom: 1px solid #e9ecef;
     }
 
-    .change-item:last-child {
+    .summary-item:last-child {
         border-bottom: none;
         padding-bottom: 0;
     }
@@ -427,77 +456,81 @@
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
         // Logo preview and removal
-        logoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    logoPreview.src = e.target.result;
+        if (logoInput) {
+            logoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        if (logoPreview.tagName === 'IMG') {
+                            logoPreview.src = e.target.result;
+                        } else {
+                            // Replace the div with an img
+                            const newImg = document.createElement('img');
+                            newImg.src = e.target.result;
+                            newImg.className = 'rounded border';
+                            newImg.style.width = '80px';
+                            newImg.style.height = '80px';
+                            newImg.style.objectFit = 'cover';
+                            newImg.id = 'logo-preview';
+                            logoPreview.parentNode.replaceChild(newImg, logoPreview);
+                        }
+                    }
+                    reader.readAsDataURL(file);
                 }
-                reader.readAsDataURL(file);
-            }
-        });
+            });
+        }
 
-        removeLogoBtn.addEventListener('click', function() {
-            logoInput.value = '';
-            logoPreview.src = '/static/images/default-startup.png';
-        });
-
-        // Team management
-        document.getElementById('addMemberBtn').addEventListener('click', function() {
-            const select = document.getElementById('addMemberSelect');
-            const memberId = select.value;
-            const memberText = select.options[select.selectedIndex].text;
-            
-            if (memberId) {
-                const memberHTML = `
-                    <div class="team-member-item d-flex align-items-center justify-content-between p-2 border rounded-3 mb-2">
-                        <div class="d-flex align-items-center">
-                            <img src="/static/images/default-avatar.png" 
-                                 alt="${memberText}" 
-                                 class="rounded-circle me-2" 
-                                 width="32" 
-                                 height="32">
-                            <div>
-                                <div class="fw-semibold">${memberText}</div>
-                                <small class="text-muted">Team Member</small>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-danger remove-member">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </div>
-                `;
-                document.getElementById('teamMembersList').insertAdjacentHTML('beforeend', memberHTML);
-                select.value = '';
-            }
-        });
-
-        // Remove team member
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.remove-member')) {
-                e.target.closest('.team-member-item').remove();
-            }
-        });
+        if (removeLogoBtn) {
+            removeLogoBtn.addEventListener('click', function() {
+                if (logoInput) logoInput.value = '';
+                // Replace with default logo display
+                const defaultDiv = document.createElement('div');
+                defaultDiv.className = 'rounded border bg-light d-flex align-items-center justify-content-center';
+                defaultDiv.style.width = '80px';
+                defaultDiv.style.height = '80px';
+                defaultDiv.id = 'logo-preview';
+                defaultDiv.innerHTML = '<i class="bi bi-building text-muted"></i>';
+                logoPreview.parentNode.replaceChild(defaultDiv, logoPreview);
+            });
+        }
 
         // Delete confirmation
-        confirmDelete.addEventListener('change', function() {
-            confirmDeleteBtn.disabled = !this.checked;
-        });
+        if (confirmDelete) {
+            confirmDelete.addEventListener('change', function() {
+                if (confirmDeleteBtn) {
+                    confirmDeleteBtn.disabled = !this.checked;
+                }
+            });
+        }
 
-        confirmDeleteBtn.addEventListener('click', function() {
-            // In a real app, this would submit a delete request
-            window.location.href = "{% url 'manager:startup_list' %}";
-        });
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', function() {
+                // In a real app, this would submit a delete request
+                // For now, just redirect to startup list
+                window.location.href = "{% url 'startups:manager_startup_list' %}";
+            });
+        }
 
         // Form validation
         form.addEventListener('submit', function(e) {
-            const name = document.getElementById('id_name').value.trim();
-            const description = document.getElementById('id_description').value.trim();
-            const industry = document.getElementById('id_industry').value;
-            const stage = document.getElementById('id_stage').value;
+            const requiredFields = [
+                'id_name', 'id_description', 'id_industry', 
+                'id_stage', 'id_location', 'id_founding_date', 'id_market'
+            ];
+            
+            let isValid = true;
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field && !field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else if (field) {
+                    field.classList.remove('is-invalid');
+                }
+            });
 
-            if (!name || !description || !industry || !stage) {
+            if (!isValid) {
                 e.preventDefault();
                 alert('Please fill in all required fields.');
                 return;
@@ -505,29 +538,47 @@
 
             // Show loading state
             const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Saving...';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Saving...';
+            }
         });
 
         // Preview functionality
-        document.getElementById('previewBtn').addEventListener('click', function() {
-            // In a real app, this would show a preview of the changes
-            alert('Preview functionality would show how the startup page will look with current changes.');
-        });
+        const previewBtn = document.getElementById('previewBtn');
+        if (previewBtn) {
+            previewBtn.addEventListener('click', function() {
+                alert('Preview functionality would show how the startup page will look with current changes.');
+            });
+        }
 
-        // Auto-format currency inputs
-        ['id_valuation', 'id_amount_raised', 'id_monthly_revenue', 'id_burn_rate'].forEach(id => {
+        // REMOVED: Auto-format number inputs on blur for financial fields
+        // Only keep for team_size if you want formatting there
+        const teamSizeInput = document.getElementById('id_team_size');
+        if (teamSizeInput) {
+            teamSizeInput.addEventListener('blur', function() {
+                if (this.value && !isNaN(this.value)) {
+                    this.value = parseFloat(this.value).toLocaleString();
+                }
+            });
+            
+            teamSizeInput.addEventListener('focus', function() {
+                if (this.value) {
+                    this.value = this.value.replace(/,/g, '');
+                }
+            });
+        }
+
+        // Add proper number handling for financial fields without formatting
+        const financialInputs = ['id_valuation', 'id_monthly_revenue'];
+        financialInputs.forEach(id => {
             const input = document.getElementById(id);
             if (input) {
+                // Ensure the value is a proper number when submitting
                 input.addEventListener('blur', function() {
-                    if (this.value) {
-                        this.value = parseInt(this.value).toLocaleString();
-                    }
-                });
-                
-                input.addEventListener('focus', function() {
-                    if (this.value) {
-                        this.value = this.value.replace(/,/g, '');
+                    if (this.value && !isNaN(this.value)) {
+                        // Just ensure it's a valid number, don't format with commas
+                        this.value = parseFloat(this.value);
                     }
                 });
             }

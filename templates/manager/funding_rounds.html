@@ -1,10 +1,10 @@
 {% extends 'base_user.html' %}
 {% load static %}
 
-{% block title %}Funding Rounds - VentureNest{% endblock %}
+{% block title %}Funding Applications - VentureNest{% endblock %}
 
-{% block page_title %}Funding Rounds{% endblock %}
-{% block page_subtitle %}Track all funding activities across your portfolio{% endblock %}
+{% block page_title %}Funding Applications{% endblock %}
+{% block page_subtitle %}Review and manage all funding applications{% endblock %}
 
 {% block page_actions %}
 <div class="btn-group">
@@ -14,60 +14,60 @@
     <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
         <i class="bi bi-download me-1"></i>Export
     </button>
-    <a href="#" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createFundingModal">
-        <i class="bi bi-plus-circle me-1"></i>New Round
+    <a href="{% url 'funding:manager_funding_analytics' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-graph-up me-1"></i>Analytics
     </a>
 </div>
 {% endblock %}
 
-{% block user_content %}
+{% block content %}
 <!-- Funding Overview Stats -->
 <div class="row mb-4">
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-primary mb-1">$156M</h3>
-                <small class="text-muted">Total Raised</small>
+                <h3 class="text-primary mb-1">${{ total_funding_amount|floatformat:0 }}</h3>
+                <small class="text-muted">Total Requested</small>
             </div>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-success mb-1">18</h3>
-                <small class="text-muted">Completed Rounds</small>
+                <h3 class="text-success mb-1">{{ approved_applications }}</h3>
+                <small class="text-muted">Approved</small>
             </div>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-warning mb-1">6</h3>
-                <small class="text-muted">Active Rounds</small>
+                <h3 class="text-warning mb-1">{{ pending_applications }}</h3>
+                <small class="text-muted">Pending Review</small>
             </div>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-info mb-1">4</h3>
-                <small class="text-muted">Upcoming Rounds</small>
+                <h3 class="text-info mb-1">{{ total_applications }}</h3>
+                <small class="text-muted">Total Applications</small>
             </div>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-nest mb-1">12</h3>
-                <small class="text-muted">Portfolio Companies</small>
+                <h3 class="text-nest mb-1">{{ applications_by_stage|length }}</h3>
+                <small class="text-muted">Funding Stages</small>
             </div>
         </div>
     </div>
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-danger mb-1">2</h3>
-                <small class="text-muted">Needs Attention</small>
+                <h3 class="text-danger mb-1">{{ rejected_applications }}</h3>
+                <small class="text-muted">Rejected</small>
             </div>
         </div>
     </div>
@@ -80,28 +80,25 @@
             <div class="col-md-2">
                 <select class="form-select form-select-sm" id="roundTypeFilter">
                     <option value="">All Types</option>
-                    <option value="pre-seed">Pre-Seed</option>
-                    <option value="seed">Seed</option>
-                    <option value="series-a">Series A</option>
-                    <option value="series-b">Series B</option>
-                    <option value="series-c">Series C+</option>
+                    {% for round_type in applications_by_stage %}
+                    <option value="{{ round_type.startup__stage }}">{{ round_type.startup__stage|title }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-2">
                 <select class="form-select form-select-sm" id="statusFilter">
                     <option value="">All Status</option>
-                    <option value="planning">Planning</option>
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    {% for status in applications_by_status %}
+                    <option value="{{ status.status }}">{{ status.status|title }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-2">
                 <select class="form-select form-select-sm" id="startupFilter">
                     <option value="">All Startups</option>
-                    <option value="techflow">TechFlow AI</option>
-                    <option value="greentech">GreenTech Solutions</option>
-                    <option value="healthtech">HealthTech Labs</option>
+                    {% for application in applications|slice:":10" %}
+                    <option value="{{ application.startup.id }}">{{ application.startup.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-4">
@@ -109,7 +106,7 @@
                     <span class="input-group-text bg-light border-end-0">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" class="form-control border-start-0" placeholder="Search funding rounds...">
+                    <input type="text" class="form-control border-start-0" placeholder="Search funding applications...">
                 </div>
             </div>
             <div class="col-md-2">
@@ -121,11 +118,11 @@
     </div>
 </div>
 
-<!-- Funding Rounds Table -->
+<!-- Funding Applications Table -->
 <div class="card shadow-sm border-0">
     <div class="card-header bg-white py-3">
         <h5 class="card-title mb-0">
-            <i class="bi bi-currency-dollar text-nest me-2"></i>All Funding Rounds
+            <i class="bi bi-currency-dollar text-nest me-2"></i>All Funding Applications ({{ total_applications }})
         </h5>
     </div>
     <div class="card-body p-0">
@@ -134,54 +131,72 @@
                 <thead class="table-light">
                     <tr>
                         <th>Startup</th>
-                        <th>Round Type</th>
-                        <th>Target Amount</th>
-                        <th>Raised Amount</th>
+                        <th>Funding Round</th>
+                        <th>Amount</th>
                         <th>Valuation</th>
+                        <th>Equity Offered</th>
                         <th>Status</th>
-                        <th>Timeline</th>
-                        <th>Lead Investor</th>
+                        <th>Submitted</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Completed Round -->
+                    {% for application in applications %}
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
-                                <img src="/static/images/startup1.png" alt="TechFlow" class="rounded-circle me-2" width="32" height="32">
+                                {% if application.startup.logo %}
+                                <img src="{{ application.startup.logo.url }}" alt="{{ application.startup.name }}" class="rounded-circle me-2" width="32" height="32">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                    <i class="bi bi-building text-white"></i>
+                                </div>
+                                {% endif %}
                                 <div>
-                                    <div class="fw-semibold">TechFlow AI</div>
-                                    <small class="text-muted">Enterprise SaaS</small>
+                                    <div class="fw-semibold">{{ application.startup.name }}</div>
+                                    <small class="text-muted">
+                                        {% with founders=application.startup.founders.all %}
+                                            {% if founders %}
+                                                {% for founder in founders %}{% if not forloop.first %}, {% endif %}{{ founder.get_full_name|default:founder.username }}{% endfor %}
+                                            {% else %}
+                                                No founders
+                                            {% endif %}
+                                        {% endwith %}
+                                    </small>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-primary">Series A</span>
+                            <span class="badge bg-{% if application.funding_round == 'seed' %}warning{% elif application.funding_round == 'series_a' %}primary{% elif application.funding_round == 'series_b' %}info{% else %}secondary{% endif %}">
+                                {{ application.get_funding_round_display }}
+                            </span>
                         </td>
                         <td>
-                            <div class="fw-semibold">$8,000,000</div>
+                            <div class="fw-semibold">${{ application.amount|floatformat:0 }}</div>
                         </td>
                         <td>
-                            <div class="fw-semibold text-success">$8,000,000</div>
-                            <small class="text-muted">100% funded</small>
+                            {% if application.valuation %}
+                            <div class="fw-semibold">${{ application.valuation|floatformat:0 }}</div>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
                         </td>
                         <td>
-                            <div class="fw-semibold">$40,000,000</div>
+                            {% if application.equity_offered %}
+                            <div class="fw-semibold">{{ application.equity_offered }}%</div>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
                         </td>
                         <td>
-                            <span class="badge bg-success">Completed</span>
+                            <span class="badge bg-{% if application.status == 'submitted' %}warning{% elif application.status == 'approved' %}success{% elif application.status == 'rejected' %}danger{% elif application.status == 'under_review' %}info{% else %}secondary{% endif %}">
+                                {{ application.get_status_display }}
+                            </span>
                         </td>
                         <td>
                             <div class="small">
-                                <div>Closed: Jun 15, 2023</div>
-                                <small class="text-muted">45 days</small>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <img src="/static/images/investor1.png" alt="VC Firm" class="rounded-circle me-2" width="24" height="24">
-                                <span>Sequoia Capital</span>
+                                <div>{{ application.created_at|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ application.created_at|timesince }} ago</small>
                             </div>
                         </td>
                         <td>
@@ -190,149 +205,71 @@
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'manager:funding_detail' 1 %}">
-                                        <i class="bi bi-eye me-2"></i>View Details
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-pencil me-2"></i>Edit
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-file-earmark-text me-2"></i>Documents
-                                    </a></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'funding:manager_funding_detail' application.pk %}">
+                                            <i class="bi bi-eye me-2"></i>View Details
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'funding:manager_funding_review' application.pk %}">
+                                            <i class="bi bi-pencil me-2"></i>Review
+                                        </a>
+                                    </li>
+                                    {% if application.pitch_deck %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ application.pitch_deck.url }}" target="_blank">
+                                            <i class="bi bi-file-earmark-text me-2"></i>Pitch Deck
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    {% if application.financials %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ application.financials.url }}" target="_blank">
+                                            <i class="bi bi-file-earmark-spreadsheet me-2"></i>Financials
+                                        </a>
+                                    </li>
+                                    {% endif %}
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#">
-                                        <i class="bi bi-archive me-2"></i>Archive
-                                    </a></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteApplicationModal{{ application.pk }}">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </td>
                     </tr>
 
-                    <!-- Active Round -->
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <img src="/static/images/startup2.png" alt="GreenTech" class="rounded-circle me-2" width="32" height="32">
-                                <div>
-                                    <div class="fw-semibold">GreenTech Solutions</div>
-                                    <small class="text-muted">Clean Energy</small>
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal fade" id="deleteApplicationModal{{ application.pk }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Delete</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to delete the funding application for <strong>{{ application.startup.name }}</strong>?</p>
+                                    <p class="text-muted small">This action cannot be undone.</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form method="POST" action="{% url 'funding:delete_application' application.pk %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Delete Application</button>
+                                    </form>
                                 </div>
                             </div>
-                        </td>
-                        <td>
-                            <span class="badge bg-warning">Seed</span>
-                        </td>
-                        <td>
-                            <div class="fw-semibold">$2,000,000</div>
-                        </td>
-                        <td>
-                            <div class="fw-semibold text-warning">$1,200,000</div>
-                            <div class="progress mt-1" style="height: 4px; width: 80px;">
-                                <div class="progress-bar bg-warning" style="width: 60%"></div>
-                            </div>
-                            <small class="text-muted">60% funded</small>
-                        </td>
-                        <td>
-                            <div class="fw-semibold">$8,000,000</div>
-                        </td>
-                        <td>
-                            <span class="badge bg-info">Active</span>
-                        </td>
-                        <td>
-                            <div class="small">
-                                <div>Closes: Jan 30, 2024</div>
-                                <small class="text-muted">45 days left</small>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <img src="/static/images/investor2.png" alt="VC Firm" class="rounded-circle me-2" width="24" height="24">
-                                <span>Andreessen Horowitz</span>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'manager:funding_detail' 2 %}">
-                                        <i class="bi bi-eye me-2"></i>View Details
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-pencil me-2"></i>Edit
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-file-earmark-text me-2"></i>Documents
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-warning" href="#">
-                                        <i class="bi bi-exclamation-triangle me-2"></i>Needs Attention
-                                    </a></li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Planning Round -->
+                        </div>
+                    </div>
+                    {% empty %}
                     <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <img src="/static/images/startup3.png" alt="HealthTech" class="rounded-circle me-2" width="32" height="32">
-                                <div>
-                                    <div class="fw-semibold">HealthTech Labs</div>
-                                    <small class="text-muted">Healthcare</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge bg-info">Series B</span>
-                        </td>
-                        <td>
-                            <div class="fw-semibold">$15,000,000</div>
-                        </td>
-                        <td>
-                            <div class="fw-semibold text-muted">$0</div>
-                            <small class="text-muted">Not started</small>
-                        </td>
-                        <td>
-                            <div class="fw-semibold">$75,000,000</div>
-                        </td>
-                        <td>
-                            <span class="badge bg-secondary">Planning</span>
-                        </td>
-                        <td>
-                            <div class="small">
-                                <div>Starts: Mar 1, 2024</div>
-                                <small class="text-muted">90 days</small>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="text-muted">-</div>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'manager:funding_detail' 3 %}">
-                                        <i class="bi bi-eye me-2"></i>View Details
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-pencil me-2"></i>Edit
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-file-earmark-text me-2"></i>Documents
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-success" href="#">
-                                        <i class="bi bi-rocket me-2"></i>Launch Round
-                                    </a></li>
-                                </ul>
-                            </div>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="bi bi-currency-dollar display-4 mb-2"></i>
+                            <p>No funding applications found</p>
                         </td>
                     </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -340,144 +277,70 @@
     <div class="card-footer bg-white py-3">
         <div class="d-flex justify-content-between align-items-center">
             <div class="text-muted small">
-                Showing <strong>3</strong> of <strong>24</strong> funding rounds
+                Showing <strong>{{ applications|length }}</strong> of <strong>{{ total_applications }}</strong> funding applications
             </div>
-            <nav aria-label="Funding rounds pagination">
+            {% if applications.has_other_pages %}
+            <nav aria-label="Funding applications pagination">
                 <ul class="pagination pagination-sm mb-0">
+                    {% if applications.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ applications.previous_page_number }}">Previous</a>
+                    </li>
+                    {% else %}
                     <li class="page-item disabled">
                         <a class="page-link" href="#">Previous</a>
                     </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    {% endif %}
+
+                    {% for i in applications.paginator.page_range %}
+                    <li class="page-item {% if applications.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if applications.has_next %}
                     <li class="page-item">
+                        <a class="page-link" href="?page={{ applications.next_page_number }}">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
                         <a class="page-link" href="#">Next</a>
                     </li>
+                    {% endif %}
                 </ul>
             </nav>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Upcoming Rounds Section -->
+<!-- Applications by Status Section -->
 <div class="card shadow-sm border-0 mt-4">
-    <div class="card-header bg-warning bg-opacity-10 py-3">
-        <h5 class="card-title mb-0 text-warning">
-            <i class="bi bi-clock me-2"></i>Upcoming Funding Rounds
+    <div class="card-header bg-info bg-opacity-10 py-3">
+        <h5 class="card-title mb-0 text-info">
+            <i class="bi bi-pie-chart me-2"></i>Applications by Status
         </h5>
     </div>
     <div class="card-body">
         <div class="row">
+            {% for status_data in applications_by_status %}
             <div class="col-md-6 col-lg-3 mb-3">
-                <div class="upcoming-round-card p-3 border rounded-3">
+                <div class="status-card p-3 border rounded-3">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="fw-semibold">MediTech Inc</div>
-                        <span class="badge bg-primary">Series A</span>
+                        <div class="fw-semibold text-capitalize">{{ status_data.status }}</div>
+                        <span class="badge bg-{% if status_data.status == 'submitted' %}warning{% elif status_data.status == 'approved' %}success{% elif status_data.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                            {{ status_data.count }}
+                        </span>
                     </div>
-                    <div class="text-muted small mb-2">Target: $5,000,000</div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">Starts Feb 1, 2024</small>
-                        <span class="badge bg-warning">30 days</span>
+                    <div class="text-muted small mb-2">${{ status_data.total_amount|default:0|floatformat:0 }} total</div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-{% if status_data.status == 'submitted' %}warning{% elif status_data.status == 'approved' %}success{% elif status_data.status == 'rejected' %}danger{% else %}secondary{% endif %}" 
+                             style="width: {{ status_data.count|divisibleby:total_applications|default:0|floatformat:0 }}%">
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3 mb-3">
-                <div class="upcoming-round-card p-3 border rounded-3">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="fw-semibold">FinTech Pro</div>
-                        <span class="badge bg-info">Series B</span>
-                    </div>
-                    <div class="text-muted small mb-2">Target: $12,000,000</div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">Starts Mar 15, 2024</small>
-                        <span class="badge bg-warning">72 days</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Create Funding Round Modal -->
-<div class="modal fade" id="createFundingModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Create New Funding Round</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="createFundingForm">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Startup</label>
-                                <select class="form-select" required>
-                                    <option value="">Select Startup</option>
-                                    <option value="1">TechFlow AI</option>
-                                    <option value="2">GreenTech Solutions</option>
-                                    <option value="3">HealthTech Labs</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Round Type</label>
-                                <select class="form-select" required>
-                                    <option value="">Select Round Type</option>
-                                    <option value="pre-seed">Pre-Seed</option>
-                                    <option value="seed">Seed</option>
-                                    <option value="series-a">Series A</option>
-                                    <option value="series-b">Series B</option>
-                                    <option value="series-c">Series C+</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Target Amount ($)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" placeholder="5,000,000" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Valuation ($)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" placeholder="25,000,000">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Start Date</label>
-                                <input type="date" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Target Close Date</label>
-                                <input type="date" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Round Description</label>
-                        <textarea class="form-control" rows="3" placeholder="Describe the funding round objectives..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Create Funding Round</button>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -495,12 +358,12 @@
         background-color: #e9ecef;
     }
 
-    .upcoming-round-card {
+    .status-card {
         transition: all 0.2s ease;
-        background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%);
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
     }
 
-    .upcoming-round-card:hover {
+    .status-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
@@ -527,8 +390,13 @@
             const status = statusFilter.value;
             const startup = startupFilter.value;
             
-            console.log('Applying filters:', { roundType, status, startup });
-            // In a real app, this would filter the funding rounds
+            // Build URL with filters
+            let url = new URL(window.location.href);
+            if (roundType) url.searchParams.set('round_type', roundType);
+            if (status) url.searchParams.set('status', status);
+            if (startup) url.searchParams.set('startup', startup);
+            
+            window.location.href = url.toString();
         }
 
         roundTypeFilter.addEventListener('change', applyFilters);
@@ -536,14 +404,11 @@
         startupFilter.addEventListener('change', applyFilters);
 
         clearFilters.addEventListener('click', function() {
-            roundTypeFilter.value = '';
-            statusFilter.value = '';
-            startupFilter.value = '';
-            applyFilters();
+            window.location.href = "{% url 'funding:manager_funding_rounds' %}";
         });
 
         // Search functionality
-        const searchInput = document.querySelector('input[placeholder="Search funding rounds..."]');
+        const searchInput = document.querySelector('input[placeholder="Search funding applications..."]');
         searchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const tableRows = document.querySelectorAll('tbody tr');
@@ -554,26 +419,11 @@
             });
         });
 
-        // Auto-format currency inputs
-        document.querySelectorAll('input[type="number"]').forEach(input => {
-            input.addEventListener('blur', function() {
-                if (this.value) {
-                    this.value = parseInt(this.value).toLocaleString();
-                }
-            });
-            
-            input.addEventListener('focus', function() {
-                if (this.value) {
-                    this.value = this.value.replace(/,/g, '');
-                }
-            });
-        });
-
         // Row click handler for details
         document.querySelectorAll('tbody tr').forEach(row => {
             row.addEventListener('click', function(e) {
-                if (!e.target.closest('.dropdown')) {
-                    const detailUrl = this.querySelector('a[href*="funding_detail"]').href;
+                if (!e.target.closest('.dropdown') && !e.target.closest('a')) {
+                    const detailUrl = this.querySelector('a[href*="manager_funding_detail"]').href;
                     window.location.href = detailUrl;
                 }
             });

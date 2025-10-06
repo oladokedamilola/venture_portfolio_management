@@ -1,0 +1,82 @@
+<!-- templates/communications/notifications.html -->
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Notifications - VentureNest{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Notifications</h1>
+            <p class="text-muted">Stay updated with your activities</p>
+        </div>
+        {% if notifications %}
+        <form method="post" action="{% url 'mark_all_notifications_read' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-check-all me-2"></i>Mark All as Read
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">All Notifications</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if notifications %}
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications %}
+                        <div class="list-group-item {% if not notification.is_read %}bg-light{% endif %}">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="bi 
+                                        {% if notification.notification_type == 'success' %}bi-check-circle-fill text-success
+                                        {% elif notification.notification_type == 'warning' %}bi-exclamation-triangle-fill text-warning
+                                        {% elif notification.notification_type == 'error' %}bi-x-circle-fill text-danger
+                                        {% elif notification.notification_type == 'system' %}bi-gear-fill text-primary
+                                        {% else %}bi-info-circle-fill text-info{% endif %} 
+                                        fs-4">
+                                    </i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ notification.title }}</h6>
+                                    <p class="mb-1">{{ notification.message }}</p>
+                                    <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                                </div>
+                                <div class="flex-shrink-0 ms-3">
+                                    {% if not notification.is_read %}
+                                    <form method="post" action="{% url 'mark_notification_read' notification.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Mark as read">
+                                            <i class="bi bi-check"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    {% if notification.action_url %}
+                                    <a href="{{ notification.action_url }}" class="btn btn-sm btn-outline-secondary ms-1">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-bell-slash fs-1 text-muted mb-3"></i>
+                        <h5>No notifications yet</h5>
+                        <p class="text-muted">You're all caught up! New notifications will appear here.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

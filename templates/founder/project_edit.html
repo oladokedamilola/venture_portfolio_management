@@ -1,0 +1,25 @@
+{% extends 'base_user.html' %}
+{% load static %}
+
+{% block title %}Edit Project - VentureNest{% endblock %}
+
+{% block page_title %}Edit Project{% endblock %}
+{% block page_subtitle %}Update your startup project details{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-4">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pencil-square text-nest me-2"></i>Edit Project: {{ project.name }}
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <!-- Same form content as manager template, but with founder-specific redirects -->
+                {% include 'manager/project_edit.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

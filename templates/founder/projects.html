@@ -1,6 +1,9 @@
 {% extends 'base_user.html' %}
 {% load static %}
 
+{% block title %}My Projects - VentureNest{% endblock %}
+
+
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Header -->
@@ -9,7 +12,7 @@
             <h1 class="h3 mb-1">My Projects</h1>
             <p class="text-muted">Manage and track your startup projects</p>
         </div>
-        <a href="{% url 'founder_project_create' %}" class="btn btn-primary">
+        <a href="{% url 'projects:project_create' %}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>New Project
         </a>
     </div>
@@ -143,11 +146,11 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <a href="{% url 'founder_project_detail' project.id %}" 
+                                    <a href="{% url 'projects:founder_project_detail' project.id %}" 
                                        class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="#" class="btn btn-sm btn-outline-secondary">
+                                    <a href="{% url 'projects:project_edit' project.id %}" class="btn btn-sm btn-outline-secondary">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                 </div>
@@ -159,7 +162,7 @@
                                 <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
                                 <h5>No projects yet</h5>
                                 <p class="text-muted">Create your first project to get started</p>
-                                <a href="{% url 'founder_project_create' %}" class="btn btn-primary">
+                                <a href="{% url 'projects:founder_project_create' %}" class="btn btn-primary">
                                     Create Project
                                 </a>
                             </td>

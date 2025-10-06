@@ -1,0 +1,4 @@
+py manage.py makemigrations accounts communications funding investments projects reports dashboard startups tasks
+
+
+py manage.py migrate

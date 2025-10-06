@@ -1,6 +1,7 @@
 {% extends 'base_user.html' %}
 {% load static %}
-
+{% load humanize %}
+{% load custom_filters %}
 {% block title %}Reports & Analytics - VentureNest{% endblock %}
 
 {% block page_title %}Portfolio Analytics{% endblock %}
@@ -22,16 +23,16 @@
 </div>
 {% endblock %}
 
-{% block user_content %}
+{% block content %}
 <!-- Quick Stats Overview -->
 <div class="row mb-4">
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-primary mb-1">24</h3>
+                <h3 class="text-primary mb-1">{{ total_startups }}</h3>
                 <small class="text-muted">Portfolio Companies</small>
                 <div class="mt-1">
-                    <span class="badge bg-success">+3 this quarter</span>
+                    <span class="badge bg-success">Active Portfolio</span>
                 </div>
             </div>
         </div>
@@ -39,10 +40,10 @@
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-success mb-1">$156M</h3>
+                <h3 class="text-success mb-1">${{ total_capital_deployed|intcomma }}M</h3>
                 <small class="text-muted">Total Capital Deployed</small>
                 <div class="mt-1">
-                    <span class="badge bg-success">+12% YoY</span>
+                    <span class="badge bg-success">Active Investments</span>
                 </div>
             </div>
         </div>
@@ -50,10 +51,10 @@
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-warning mb-1">$45M</h3>
+                <h3 class="text-warning mb-1">${{ quarterly_revenue|intcomma }}M</h3>
                 <small class="text-muted">Quarterly Revenue</small>
                 <div class="mt-1">
-                    <span class="badge bg-success">+18% growth</span>
+                    <span class="badge bg-success">Portfolio Revenue</span>
                 </div>
             </div>
         </div>
@@ -61,10 +62,10 @@
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-info mb-1">3.2x</h3>
+                <h3 class="text-info mb-1">{{ average_multiple }}x</h3>
                 <small class="text-muted">Average Multiple</small>
                 <div class="mt-1">
-                    <span class="badge bg-success">+0.4x</span>
+                    <span class="badge bg-success">Portfolio Performance</span>
                 </div>
             </div>
         </div>
@@ -72,10 +73,10 @@
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-nest mb-1">78%</h3>
+                <h3 class="text-nest mb-1">{{ on_track_percentage|floatformat:0 }}%</h3>
                 <small class="text-muted">On Track</small>
                 <div class="mt-1">
-                    <span class="badge bg-success">+5% improvement</span>
+                    <span class="badge bg-success">Project Health</span>
                 </div>
             </div>
         </div>
@@ -83,10 +84,10 @@
     <div class="col-xl-2 col-md-4 col-6">
         <div class="card dashboard-card border-0">
             <div class="card-body text-center py-3">
-                <h3 class="text-danger mb-1">5</h3>
+                <h3 class="text-danger mb-1">{{ needs_attention }}</h3>
                 <small class="text-muted">Needs Attention</small>
                 <div class="mt-1">
-                    <span class="badge bg-warning">2 critical</span>
+                    <span class="badge bg-warning">Monitoring Required</span>
                 </div>
             </div>
         </div>
@@ -117,7 +118,7 @@
                         <div class="text-center text-muted">
                             <i class="bi bi-bar-chart display-4 mb-3"></i>
                             <p>Portfolio performance chart visualization</p>
-                            <small>Showing valuation growth, revenue trends, and investment multiples</small>
+                            <small>Showing valuation growth across {{ total_startups }} portfolio companies</small>
                         </div>
                     </div>
                 </div>
@@ -143,18 +144,16 @@
                             </div>
                         </div>
                         <div class="distribution-stats">
+                            {% for stage in stage_distribution %}
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Seed Stage</span>
-                                <span class="fw-semibold">8 companies (33%)</span>
+                                <span>{{ stage.stage|default:"Not Specified" }}</span>
+                                <span class="fw-semibold">{{ stage.count }} companies ({{ stage.percentage|floatformat:0 }}%)</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Series A</span>
-                                <span class="fw-semibold">12 companies (50%)</span>
+                            {% empty %}
+                            <div class="text-center text-muted">
+                                <p>No stage data available</p>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span>Series B+</span>
-                                <span class="fw-semibold">4 companies (17%)</span>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -176,22 +175,16 @@
                             </div>
                         </div>
                         <div class="industry-stats">
+                            {% for industry in industry_breakdown %}
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Technology</span>
-                                <span class="fw-semibold">10 companies (42%)</span>
+                                <span>{{ industry.industry|default:"Not Specified" }}</span>
+                                <span class="fw-semibold">{{ industry.count }} companies ({{ industry.percentage|floatformat:0 }}%)</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Healthcare</span>
-                                <span class="fw-semibold">6 companies (25%)</span>
+                            {% empty %}
+                            <div class="text-center text-muted">
+                                <p>No industry data available</p>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Clean Energy</span>
-                                <span class="fw-semibold">4 companies (17%)</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span>Other</span>
-                                <span class="fw-semibold">4 companies (16%)</span>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -220,102 +213,60 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for metric in performance_metrics %}
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img src="/static/images/startup1.png" alt="TechFlow" class="rounded-circle me-2" width="32" height="32">
-                                        <div class="fw-semibold">TechFlow AI</div>
+                                        <div class="avatar-sm me-2">
+                                            {% if metric.startup.logo %}
+                                            <img src="{{ metric.startup.logo.url }}" alt="{{ metric.startup.name }}" class="rounded-circle" width="32" height="32">
+                                            {% else %}
+                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-building text-white"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="fw-semibold">{{ metric.startup.name }}</div>
                                     </div>
                                 </td>
-                                <td><span class="badge bg-primary">Series A</span></td>
+                                <td><span class="badge bg-primary">{{ metric.stage }}</span></td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <span class="fw-semibold text-success">+45%</span>
+                                        <span class="fw-semibold text-{% if metric.revenue_growth > 20 %}success{% elif metric.revenue_growth > 0 %}warning{% else %}danger{% endif %}">
+                                            +{{ metric.revenue_growth }}%
+                                        </span>
+                                        <i class="bi bi-arrow-up-right text-{% if metric.revenue_growth > 20 %}success{% elif metric.revenue_growth > 0 %}warning{% else %}danger{% endif %} ms-1"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold text-{% if metric.valuation_change > 1.5 %}success{% elif metric.valuation_change > 1.0 %}warning{% else %}danger{% endif %}">
+                                            {{ metric.valuation_change }}x
+                                        </span>
+                                        <i class="bi bi-arrow-up-right text-{% if metric.valuation_change > 1.5 %}success{% elif metric.valuation_change > 1.0 %}warning{% else %}danger{% endif %} ms-1"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">${{ metric.burn_rate|intcomma }}/mo</div>
+                                    <small class="text-muted">Active operations</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fw-semibold">+{{ metric.team_growth }}</span>
                                         <i class="bi bi-arrow-up-right text-success ms-1"></i>
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-semibold text-success">+2.1x</span>
-                                        <i class="bi bi-arrow-up-right text-success ms-1"></i>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold">$85K/mo</div>
-                                    <small class="text-muted">18 months runway</small>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-semibold">+8</span>
-                                        <i class="bi bi-arrow-up-right text-success ms-1"></i>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-success">Exceeding</span></td>
+                                <td><span class="badge bg-{{ metric.status_badge }}">{{ metric.status }}</span></td>
                             </tr>
+                            {% empty %}
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/static/images/startup2.png" alt="GreenTech" class="rounded-circle me-2" width="32" height="32">
-                                        <div class="fw-semibold">GreenTech Solutions</div>
-                                    </div>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="bi bi-graph-up display-4 mb-3"></i>
+                                    <p>No performance data available</p>
+                                    <small>Add startups and projects to see performance metrics</small>
                                 </td>
-                                <td><span class="badge bg-warning">Seed</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-semibold text-warning">+12%</span>
-                                        <i class="bi bi-arrow-up-right text-warning ms-1"></i>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-semibold text-warning">+1.2x</span>
-                                        <i class="bi bi-arrow-up-right text-warning ms-1"></i>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold">$45K/mo</div>
-                                    <small class="text-muted">9 months runway</small>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-semibold">+3</span>
-                                        <i class="bi bi-arrow-up-right text-success ms-1"></i>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-warning">On Track</span></td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/static/images/startup3.png" alt="HealthTech" class="rounded-circle me-2" width="32" height="32">
-                                        <div class="fw-semibold">HealthTech Labs</div>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-info">Series B</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-semibold text-danger">-5%</span>
-                                        <i class="bi bi-arrow-down-right text-danger ms-1"></i>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-semibold text-danger">-0.3x</span>
-                                        <i class="bi bi-arrow-down-right text-danger ms-1"></i>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold">$120K/mo</div>
-                                    <small class="text-muted">6 months runway</small>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="fw-semibold">-2</span>
-                                        <i class="bi bi-arrow-down-right text-danger ms-1"></i>
-                                    </div>
-                                </td>
-                                <td><span class="badge bg-danger">At Risk</span></td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -364,37 +315,37 @@
                 <div class="kpi-item mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted">Portfolio IRR</span>
-                        <span class="fw-semibold text-success">28.5%</span>
+                        <span class="fw-semibold text-success">{{ kpis.portfolio_irr }}%</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                        <div class="progress-bar bg-success" style="width: {{ kpis.portfolio_irr }}%"></div>
                     </div>
                 </div>
                 <div class="kpi-item mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted">Cash-on-Cash</span>
-                        <span class="fw-semibold text-success">2.8x</span>
+                        <span class="fw-semibold text-success">{{ kpis.cash_on_cash }}x</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: 70%"></div>
+                        <div class="progress-bar bg-success" style="width: {{ kpis.cash_on_cash|multiply:33.33 }}%"></div>
                     </div>
                 </div>
                 <div class="kpi-item mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted">TVPI</span>
-                        <span class="fw-semibold text-warning">1.4x</span>
+                        <span class="fw-semibold text-warning">{{ kpis.tvpi }}x</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-warning" style="width: 45%"></div>
+                        <div class="progress-bar bg-warning" style="width: {{ kpis.tvpi|multiply:33.33 }}%"></div>
                     </div>
                 </div>
                 <div class="kpi-item">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted">DPI</span>
-                        <span class="fw-semibold text-info">0.3x</span>
+                        <span class="fw-semibold text-info">{{ kpis.dpi }}x</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-info" style="width: 30%"></div>
+                        <div class="progress-bar bg-info" style="width: {{ kpis.dpi|multiply:33.33 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -408,54 +359,30 @@
                 </h5>
             </div>
             <div class="card-body">
+                {% for report in recent_reports %}
                 <div class="report-item d-flex align-items-center justify-content-between mb-3">
                     <div>
-                        <div class="fw-semibold">Q4 Portfolio Review</div>
-                        <small class="text-muted">Generated Dec 15, 2023</small>
+                        <div class="fw-semibold">{{ report.title }}</div>
+                        <small class="text-muted">Generated {{ report.created_at|date:"M d, Y" }}</small>
                     </div>
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
                             <i class="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Download</a></li>
+                            <li><a class="dropdown-item" href="{{ report.get_absolute_url }}"><i class="bi bi-eye me-2"></i>View</a></li>
+                            <li><a class="dropdown-item" href="{{ report.download_url }}"><i class="bi bi-download me-2"></i>Download</a></li>
                             <li><a class="dropdown-item" href="#"><i class="bi bi-share me-2"></i>Share</a></li>
                         </ul>
                     </div>
                 </div>
-                <div class="report-item d-flex align-items-center justify-content-between mb-3">
-                    <div>
-                        <div class="fw-semibold">Investor Update - Nov 2023</div>
-                        <small class="text-muted">Generated Nov 30, 2023</small>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Download</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-share me-2"></i>Share</a></li>
-                        </ul>
-                    </div>
+                {% empty %}
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-file-earmark-text display-4 mb-2"></i>
+                    <p>No reports generated yet</p>
+                    <small>Generate your first report to see it here</small>
                 </div>
-                <div class="report-item d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="fw-semibold">Risk Assessment Report</div>
-                        <small class="text-muted">Generated Nov 15, 2023</small>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Download</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-share me-2"></i>Share</a></li>
-                        </ul>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -506,9 +433,9 @@
                                 <label class="form-label">Startups Included</label>
                                 <select class="form-select" multiple>
                                     <option value="all" selected>All Startups</option>
-                                    <option value="techflow">TechFlow AI</option>
-                                    <option value="greentech">GreenTech Solutions</option>
-                                    <option value="healthtech">HealthTech Labs</option>
+                                    {% for startup in startups %}
+                                    <option value="{{ startup.id }}">{{ startup.name }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -597,6 +524,14 @@
     .dropdown-toggle::after {
         display: none;
     }
+
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 </style>
 
 <script>
@@ -679,16 +614,6 @@
                 
                 // In a real app, this would add the report to the recent reports list
             }, 2000);
-        });
-
-        // Export functionality
-        document.querySelectorAll('.dropdown-item').forEach(item => {
-            if (item.textContent.includes('Download')) {
-                item.addEventListener('click', function() {
-                    const reportName = this.closest('.report-item').querySelector('.fw-semibold').textContent;
-                    alert(`Downloading: ${reportName}\n\nIn a real application, this would initiate the download.`);
-                });
-            }
         });
 
         // KPI progress bar animations

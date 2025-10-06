@@ -1,0 +1,25 @@
+{# communications/conversation_list.html #}
+<div class="messages-container">
+    <div class="conversation-sidebar">
+        <h5>Conversations</h5>
+        {% for conversation in conversations %}
+        <div class="conversation-item" data-conversation-id="{{ conversation.id }}">
+            <strong>{{ conversation.title }}</strong>
+            <small>{{ conversation.last_message.content|truncatewords:10 }}</small>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="message-area">
+        <div class="message-header">
+            <h6 id="conversation-title">Select a conversation</h6>
+        </div>
+        <div class="messages-list" id="messages-list">
+            <!-- Messages will be loaded here -->
+        </div>
+        <div class="message-input">
+            <textarea id="message-input" placeholder="Type your message..."></textarea>
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>

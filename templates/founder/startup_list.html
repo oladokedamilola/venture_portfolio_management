@@ -1,0 +1,358 @@
+{% extends 'base_user.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Startups - VentureNest{% endblock %}
+
+{% block page_title %}Portfolio Startups{% endblock %}
+{% block page_subtitle %}Manage your portfolio companies{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'startups:founder_startup_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>Add Startup
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Flash Messages -->
+{% if messages %}
+<div class="container-fluid mb-4">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' or message.tags == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+            <div>{{ message }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <h3 class="text-nest">{{ total_startups }}</h3>
+                <p class="text-muted mb-0">Total Startups</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <h3 class="text-success">{{ total_startups }}</h3>
+                <p class="text-muted mb-0">Active</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <h3 class="text-info">{{ stage_counts.seed|add:stage_counts.series_a|add:stage_counts.series_b }}</h3>
+                <p class="text-muted mb-0">Seeking Funding</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <h3 class="text-warning">{{ stage_counts.idea|add:stage_counts.pre_seed }}</h3>
+                <p class="text-muted mb-0">Early Stage</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stage Distribution -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pie-chart text-nest me-2"></i>Stage Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2 col-6 text-center mb-3">
+                        <div class="stage-card p-3 border rounded-3">
+                            <div class="fw-bold text-primary display-6">{{ stage_counts.idea }}</div>
+                            <small class="text-muted">Idea Stage</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6 text-center mb-3">
+                        <div class="stage-card p-3 border rounded-3">
+                            <div class="fw-bold text-info display-6">{{ stage_counts.pre_seed }}</div>
+                            <small class="text-muted">Pre-Seed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6 text-center mb-3">
+                        <div class="stage-card p-3 border rounded-3">
+                            <div class="fw-bold text-warning display-6">{{ stage_counts.seed }}</div>
+                            <small class="text-muted">Seed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6 text-center mb-3">
+                        <div class="stage-card p-3 border rounded-3">
+                            <div class="fw-bold text-success display-6">{{ stage_counts.series_a }}</div>
+                            <small class="text-muted">Series A</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6 text-center mb-3">
+                        <div class="stage-card p-3 border rounded-3">
+                            <div class="fw-bold text-nest display-6">{{ stage_counts.series_b }}</div>
+                            <small class="text-muted">Series B</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6 text-center mb-3">
+                        <div class="stage-card p-3 border rounded-3">
+                            <div class="fw-bold text-purple display-6">{{ stage_counts.growth }}</div>
+                            <small class="text-muted">Growth</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Startups Table -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">All Startups ({{ total_startups }})</h5>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown">
+                    <i class="bi bi-filter me-1"></i>Filter
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?stage=all">All Stages</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="?stage=idea">Idea Stage</a></li>
+                    <li><a class="dropdown-item" href="?stage=pre_seed">Pre-Seed</a></li>
+                    <li><a class="dropdown-item" href="?stage=seed">Seed</a></li>
+                    <li><a class="dropdown-item" href="?stage=series_a">Series A</a></li>
+                    <li><a class="dropdown-item" href="?stage=series_b">Series B</a></li>
+                    <li><a class="dropdown-item" href="?stage=growth">Growth</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if startups %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0">Startup</th>
+                        <th class="border-0">Industry</th>
+                        <th class="border-0">Stage</th>
+                        <th class="border-0">Team Size</th>
+                        <th class="border-0">Revenue</th>
+                        <th class="border-0">Valuation</th>
+                        <th class="border-0">Founded</th>
+                        <th class="border-0">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for startup in startups %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if startup.logo %}
+                                <img src="{{ startup.logo.url }}" 
+                                     alt="{{ startup.name }}" 
+                                     class="rounded me-3" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                <div class="rounded bg-light d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="bi bi-building text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-0">{{ startup.name }}</h6>
+                                    <small class="text-muted">
+                                        {% with first_founder=startup.founders.first %}
+                                            {% if first_founder %}
+                                                {{ first_founder.get_full_name|default:first_founder.username }}
+                                            {% else %}
+                                                No founders
+                                            {% endif %}
+                                        {% endwith %}
+                                    </small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-earth text-white">
+                                {{ startup.get_industry_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if startup.stage == 'idea' %}secondary{% elif startup.stage == 'pre_seed' %}info{% elif startup.stage == 'seed' %}warning{% elif startup.stage == 'series_a' %}primary{% elif startup.stage == 'series_b' %}success{% else %}dark{% endif %}">
+                                {{ startup.get_stage_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-semibold">{{ startup.team_size }}</span>
+                            <small class="text-muted d-block">people</small>
+                        </td>
+                        <td>
+                            {% if startup.monthly_revenue > 0 %}
+                            <strong>${{ startup.monthly_revenue|intcomma }}/mo</strong>
+                            {% else %}
+                            <span class="text-muted">Pre-revenue</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>${{ startup.valuation|intcomma }}</strong>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <div>{{ startup.founding_date|date:"M Y" }}</div>
+                                <small class="text-muted">{{ startup.founding_date|timesince }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'startups:founder_startup_detail' startup.id %}" 
+                                   class="btn btn-sm btn-outline-primary"
+                                   data-bs-toggle="tooltip" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'startups:startup_edit' startup.id %}" 
+                                   class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="tooltip" title="Edit Startup">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% comment %} <a href="#" 
+                                   class="btn btn-sm btn-outline-info"
+                                   data-bs-toggle="tooltip" title="View Projects">
+                                    <i class="bi bi-kanban"></i>
+                                </a> {% endcomment %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-building display-4 text-muted mb-3"></i>
+            <h4 class="text-muted">No Startups Yet</h4>
+            <p class="text-muted">Get started by adding your first portfolio company.</p>
+            <a href="{% url 'startups:founder_startup_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Add First Startup
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% if startups.has_other_pages %}
+    <div class="card-footer bg-white">
+        <nav aria-label="Startups pagination">
+            <ul class="pagination pagination-sm justify-content-center mb-0">
+                {% if startups.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ startups.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for i in startups.paginator.page_range %}
+                <li class="page-item {% if startups.number == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+                {% endfor %}
+                
+                {% if startups.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ startups.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.dashboard-card {
+    transition: transform 0.2s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.stage-card {
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.stage-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+}
+
+.bg-earth {
+    background-color: #8B4513 !important;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.04);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Add click handlers for table rows
+    document.querySelectorAll('tbody tr').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't trigger if clicking on buttons or links
+            if (!e.target.closest('a') && !e.target.closest('button')) {
+                const viewLink = this.querySelector('a[href*="founder_startup_detail"]');
+                if (viewLink) {
+                    window.location.href = viewLink.href;
+                }
+            }
+        });
+    });
+    
+    // Add animations to cards
+    const cards = document.querySelectorAll('.dashboard-card, .stage-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate__animated', 'animate__fadeInUp');
+    });
+});
+</script>
+{% endblock %}

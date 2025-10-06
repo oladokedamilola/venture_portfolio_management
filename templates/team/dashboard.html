@@ -1,5 +1,6 @@
 {% extends 'base_user.html' %}
 {% load static %}
+{% block title %}Team Dashboard - VentureNest{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -10,7 +11,7 @@
             <p class="text-muted">Welcome back, {{ user.first_name }}! Here's your work overview.</p>
         </div>
         <div class="btn-group">
-            <a href="{% url 'team_tasks' %}" class="btn btn-primary">
+            <a href="{% url 'tasks:team_tasks' %}" class="btn btn-primary">
                 <i class="fas fa-tasks me-2"></i>View All Tasks
             </a>
         </div>
@@ -82,7 +83,7 @@
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Recent Tasks</h5>
-                    <a href="{% url 'team_tasks' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{% url 'tasks:team_tasks' %}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
                     {% for task in recent_tasks %}
@@ -130,10 +131,13 @@
         <!-- Projects Overview -->
         <div class="col-lg-6 mb-4">
             <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">My Projects</h5>
-                    <a href="{% url 'team_projects' %}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
+<div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0">My Projects</h5>
+    {% if has_tasks %}
+        <a href="{% url 'projects:team_projects' %}" class="btn btn-sm btn-outline-primary">View All</a>
+    {% endif %}
+</div>
+
                 <div class="card-body">
                     {% for project in my_projects %}
                     <div class="project-item border-bottom pb-3 mb-3">

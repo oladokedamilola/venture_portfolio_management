@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
+        <div class="col-md-8 col-lg-6">
             <!-- Login Card -->
             <div class="card shadow-lg border-0 rounded-3">
                 <div class="card-header bg-nest text-white text-center py-4 rounded-top-3">
@@ -98,7 +98,7 @@
                             
                             <!-- Forgot Password Link -->
                             <div class="text-end mt-2">
-                                <a href="{% url 'password_reset' %}" class="text-nest text-decoration-none small">
+                                <a href="{% url 'password_reset_request' %}" class="text-nest text-decoration-none small">
                                     <i class="bi bi-question-circle me-1"></i>Forgot your password?
                                 </a>
                             </div>
@@ -135,7 +135,7 @@
                     <!-- Register Redirect -->
                     <div class="text-center mt-4 pt-4 border-top">
                         <p class="mb-2 text-muted">Don't have an account?</p>
-                        <a href="{% url 'register' %}" class="btn btn-outline-primary rounded-3">
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#roleSelectionModal" class="btn btn-outline-primary rounded-3">
                             <i class="bi bi-rocket-takeoff me-2"></i>Create VentureNest Account
                         </a>
                     </div>

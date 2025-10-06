@@ -1,14 +1,15 @@
 {% extends 'base_user.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}{{ startup.name }} - VentureNest{% endblock %}
 
 {% block page_title %}{{ startup.name }}{% endblock %}
-{% block page_subtitle %}{{ startup.industry }} • {{ startup.get_stage_display }}{% endblock %}
+{% block page_subtitle %}{{ startup.get_industry_display }} • {{ startup.get_stage_display }}{% endblock %}
 
 {% block page_actions %}
 <div class="btn-group">
-    <a href="{% url 'manager:startup_edit' startup.id %}" class="btn btn-outline-primary btn-sm">
+    <a href="{% url 'startups:startup_edit' startup.id %}" class="btn btn-outline-primary btn-sm">
         <i class="bi bi-pencil me-1"></i>Edit
     </a>
     <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
@@ -16,7 +17,7 @@
     </button>
     <ul class="dropdown-menu">
         <li><a class="dropdown-item" href="#">
-            <i class="bi bi-archive me-2"></i>Archive
+            <i class="bi bi-archive me-2"></i>{% if startup.is_active %}Archive{% else %}Activate{% endif %}
         </a></li>
         <li><a class="dropdown-item" href="#">
             <i class="bi bi-file-earmark-text me-2"></i>Generate Report
@@ -29,7 +30,7 @@
 </div>
 {% endblock %}
 
-{% block user_content %}
+{% block content %}
 <div class="row">
     <!-- Main Content -->
     <div class="col-lg-8">
@@ -40,18 +41,25 @@
                     <h5 class="card-title mb-0">
                         <i class="bi bi-info-circle text-nest me-2"></i>Overview
                     </h5>
-                    <span class="badge {% if startup.status == 'on_track' %}bg-success{% elif startup.status == 'needs_review' %}bg-warning{% else %}bg-danger{% endif %}">
-                        {{ startup.get_status_display }}
+                    <span class="badge {% if startup.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if startup.is_active %}Active{% else %}Inactive{% endif %}
                     </span>
                 </div>
             </div>
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-3 text-center">
-                        <img src="{{ startup.logo.url|default:'/static/images/default-startup.png' }}" 
+                        {% if startup.logo and startup.logo.url %}
+                        <img src="{{ startup.logo.url }}" 
                              alt="{{ startup.name }}" 
                              class="rounded-circle shadow-sm mb-3"
                              style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm mb-3 mx-auto"
+                             style="width: 100px; height: 100px;">
+                            <i class="bi bi-building text-muted" style="font-size: 2rem;"></i>
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="col-md-9">
                         <p class="text-muted mb-3">{{ startup.description }}</p>
@@ -61,12 +69,12 @@
                                 <small class="text-muted">Team Size</small>
                             </div>
                             <div class="col-4">
-                                <div class="metric-value fw-bold text-nest">${{ startup.amount_raised|floatformat:0 }}M</div>
-                                <small class="text-muted">Funding Raised</small>
+                                <div class="metric-value fw-bold text-nest">${{ startup.monthly_revenue|intcomma }}</div>
+                                <small class="text-muted">Monthly Revenue</small>
                             </div>
                             <div class="col-4">
-                                <div class="metric-value fw-bold text-nest">85%</div>
-                                <small class="text-muted">Progress</small>
+                                <div class="metric-value fw-bold text-nest">{{ projects.count }}</div>
+                                <small class="text-muted">Projects</small>
                             </div>
                         </div>
                     </div>
@@ -75,11 +83,15 @@
                 <!-- Progress Bars -->
                 <div class="mb-4">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="fw-semibold">Overall Progress</span>
-                        <span class="text-muted">85%</span>
+                        <span class="fw-semibold">Portfolio Health</span>
+                        <span class="text-muted">
+                            {% if startup.is_active %}Healthy{% else %}Needs Review{% endif %}
+                        </span>
                     </div>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                        <div class="progress-bar {% if startup.is_active %}bg-success{% else %}bg-warning{% endif %}" 
+                             style="width: {% if startup.is_active %}85{% else %}45{% endif %}%">
+                        </div>
                     </div>
                 </div>
 
@@ -97,7 +109,7 @@
                             </tr>
                             <tr>
                                 <td class="text-muted">Founded:</td>
-                                <td class="fw-semibold">{{ startup.founded_date|date:"F Y" }}</td>
+                                <td class="fw-semibold">{{ startup.founding_date|date:"F Y" }}</td>
                             </tr>
                         </table>
                     </div>
@@ -106,18 +118,22 @@
                             <tr>
                                 <td class="text-muted">Website:</td>
                                 <td>
+                                    {% if startup.website %}
                                     <a href="{{ startup.website }}" target="_blank" class="text-nest text-decoration-none">
-                                        {{ startup.website|default:"-" }}
+                                        {{ startup.website|truncatechars:30 }}
                                     </a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">Valuation:</td>
-                                <td class="fw-semibold">${{ startup.valuation|floatformat:0 }}M</td>
+                                <td class="fw-semibold">${{ startup.valuation|intcomma }}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted">Last Updated:</td>
-                                <td class="fw-semibold">{{ startup.updated_at|timesince }} ago</td>
+                                <td class="text-muted">Location:</td>
+                                <td class="fw-semibold">{{ startup.location }}</td>
                             </tr>
                         </table>
                     </div>
@@ -125,31 +141,40 @@
             </div>
         </div>
 
-        <!-- Team Section -->
+        <!-- Founder Section -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-people text-nest me-2"></i>Team
+                    <i class="bi bi-person text-nest me-2"></i>Founder
                 </h5>
             </div>
             <div class="card-body">
-                <div class="row" id="teamMembers">
-                    <!-- Team Member -->
-                    <div class="col-md-6 mb-3">
+                <div class="row">
+                    <div class="col-md-6">
                         <div class="d-flex align-items-center p-3 border rounded-3">
-                            <img src="/static/images/avatar4.png" alt="Alex Chen" class="rounded-circle me-3" width="50" height="50">
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="bi bi-person text-white"></i>
+                            </div>
                             <div class="flex-grow-1">
-                                <h6 class="mb-0 fw-semibold">Alex Chen</h6>
-                                <small class="text-muted">CEO & Founder</small>
+                                <h6 class="mb-0 fw-semibold">
+                                    {% if startup.founder %}
+                                        {{ startup.founder.get_full_name|default:startup.founder.username }}
+                                    {% else %}
+                                        Founder Not Assigned
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">Founder & CEO</small>
+                                {% if startup.founder %}
                                 <div class="mt-1">
-                                    <a href="mailto:alex@techflow.ai" class="text-nest text-decoration-none small">
-                                        <i class="bi bi-envelope me-1"></i>alex@techflow.ai
-                                    </a>
+                                    <span class="text-nest text-decoration-none small">
+                                        <i class="bi bi-envelope me-1"></i>{{ startup.founder.email }}
+                                    </span>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
-                    <!-- More team members... -->
                 </div>
             </div>
         </div>
@@ -165,24 +190,50 @@
                 <div class="activity-timeline">
                     <div class="activity-item d-flex mb-3">
                         <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-milestone text-primary"></i>
+                            <i class="bi bi-plus-circle text-success"></i>
                         </div>
                         <div class="activity-content">
-                            <div class="fw-semibold">Milestone Completed</div>
-                            <small class="text-muted">Product MVP launched successfully</small>
-                            <div class="text-muted small">2 days ago</div>
+                            <div class="fw-semibold">Startup Created</div>
+                            <small class="text-muted">{{ startup.name }} was added to portfolio</small>
+                            <div class="text-muted small">{{ startup.created_at|timesince }} ago</div>
                         </div>
                     </div>
+                    {% if startup.updated_at != startup.created_at %}
                     <div class="activity-item d-flex mb-3">
                         <div class="activity-icon flex-shrink-0 me-3">
-                            <i class="bi bi-currency-dollar text-success"></i>
+                            <i class="bi bi-pencil text-primary"></i>
                         </div>
                         <div class="activity-content">
-                            <div class="fw-semibold">Funding Update</div>
-                            <small class="text-muted">Series A round closed at $8M</small>
-                            <div class="text-muted small">1 week ago</div>
+                            <div class="fw-semibold">Details Updated</div>
+                            <small class="text-muted">Startup information was updated</small>
+                            <div class="text-muted small">{{ startup.updated_at|timesince }} ago</div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if projects.count > 0 %}
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-kanban text-info"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Projects Active</div>
+                            <small class="text-muted">{{ projects.count }} project{{ projects.count|pluralize }} in progress</small>
+                            <div class="text-muted small">Active</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if investments %}
+                    <div class="activity-item d-flex mb-3">
+                        <div class="activity-icon flex-shrink-0 me-3">
+                            <i class="bi bi-currency-dollar text-warning"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="fw-semibold">Investments</div>
+                            <small class="text-muted">{{ investments.count }} investment{{ investments.count|pluralize }} recorded</small>
+                            <div class="text-muted small">Portfolio</div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -201,94 +252,107 @@
                 <div class="metric-item mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="text-muted">Monthly Revenue</span>
-                        <span class="fw-semibold">$125K</span>
+                        <span class="fw-semibold">${{ startup.monthly_revenue|intcomma }}</span>
                     </div>
                     <div class="progress" style="height: 4px;">
-                        <div class="progress-bar bg-success" style="width: 75%"></div>
+                        <div class="progress-bar bg-success" 
+                             style="width: {% widthratio startup.monthly_revenue 1000000 100 %}%">
+                        </div>
                     </div>
                 </div>
                 <div class="metric-item mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-muted">Customer Growth</span>
-                        <span class="fw-semibold">+24%</span>
+                        <span class="text-muted">Team Growth</span>
+                        <span class="fw-semibold">{{ startup.team_size }} people</span>
                     </div>
                     <div class="progress" style="height: 4px;">
-                        <div class="progress-bar bg-info" style="width: 85%"></div>
+                        <div class="progress-bar bg-info" 
+                             style="width: {% widthratio startup.team_size 50 100 %}%">
+                        </div>
                     </div>
                 </div>
                 <div class="metric-item mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-muted">Burn Rate</span>
-                        <span class="fw-semibold">$85K/mo</span>
+                        <span class="text-muted">Valuation</span>
+                        <span class="fw-semibold">${{ startup.valuation|intcomma }}</span>
                     </div>
                     <div class="progress" style="height: 4px;">
-                        <div class="progress-bar bg-warning" style="width: 60%"></div>
+                        <div class="progress-bar bg-warning" 
+                             style="width: {% widthratio startup.valuation 100000000 100 %}%">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Funding Rounds -->
+        <!-- Financial Summary -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-currency-dollar text-nest me-2"></i>Funding
+                        <i class="bi bi-currency-dollar text-nest me-2"></i>Financial Summary
                     </h5>
-                    <a href="{% url 'manager:funding_rounds' %}" class="btn btn-outline-primary btn-sm">
-                        View All
-                    </a>
                 </div>
             </div>
             <div class="card-body">
-                <div class="funding-round mb-3">
+                <div class="financial-item mb-3">
                     <div class="d-flex justify-content-between align-items-start mb-1">
-                        <span class="fw-semibold">Series A</span>
-                        <span class="badge bg-success">Completed</span>
+                        <span class="fw-semibold">Current Valuation</span>
+                        <span class="badge bg-primary">Active</span>
                     </div>
                     <div class="d-flex justify-content-between text-muted small">
-                        <span>$8,000,000</span>
-                        <span>Jun 2023</span>
+                        <span>${{ startup.valuation|intcomma }}</span>
+                        <span>{{ startup.updated_at|date:"M Y" }}</span>
                     </div>
                 </div>
-                <div class="funding-round mb-3">
+                <div class="financial-item mb-3">
                     <div class="d-flex justify-content-between align-items-start mb-1">
-                        <span class="fw-semibold">Seed Round</span>
-                        <span class="badge bg-success">Completed</span>
+                        <span class="fw-semibold">Monthly Revenue</span>
+                        <span class="badge {% if startup.monthly_revenue > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                            {% if startup.monthly_revenue > 0 %}Active{% else %}Pre-revenue{% endif %}
+                        </span>
                     </div>
                     <div class="d-flex justify-content-between text-muted small">
-                        <span>$1,500,000</span>
-                        <span>Mar 2022</span>
+                        <span>${{ startup.monthly_revenue|intcomma }}/mo</span>
+                        <span>Recurring</span>
                     </div>
                 </div>
+                {% if investments %}
+                <div class="financial-item">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <span class="fw-semibold">Total Investments</span>
+                        <span class="badge bg-info">Portfolio</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>{{ investments.count }} round{{ investments.count|pluralize }}</span>
+                        <span>Active</span>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Documents -->
+        <!-- Quick Actions -->
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-folder text-nest me-2"></i>Documents
+                    <i class="bi bi-lightning text-nest me-2"></i>Quick Actions
                 </h5>
             </div>
             <div class="card-body">
-                <div class="document-item d-flex align-items-center justify-content-between mb-2">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
-                        <span class="small">Pitch_Deck.pdf</span>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-download"></i>
-                    </button>
-                </div>
-                <div class="document-item d-flex align-items-center justify-content-between mb-2">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-file-earmark-text text-primary me-2"></i>
-                        <span class="small">Cap_Table.xlsx</span>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-download"></i>
-                    </button>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'startups:startup_edit' startup.id %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-pencil me-2"></i>Edit Startup
+                    </a>
+                    <a href="{% url 'projects:manager_projects' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-kanban me-2"></i>Manage Projects
+                    </a>
+                    <a href="{% url 'funding:manager_funding_rounds' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-currency-dollar me-2"></i>View Funding
+                    </a>
+                    <a href="{% url 'reports:generate_manager_report' %}?startup={{ startup.id }}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-file-earmark-text me-2"></i>Generate Report
+                    </a>
                 </div>
             </div>
         </div>
@@ -301,7 +365,7 @@
         <ul class="nav nav-tabs" id="startupTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button">
-                    <i class="bi bi-kanban me-1"></i>Projects
+                    <i class="bi bi-kanban me-1"></i>Projects ({{ projects.count }})
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -318,21 +382,75 @@
         
         <div class="tab-content mt-3" id="startupTabsContent">
             <div class="tab-pane fade show active" id="projects" role="tabpanel">
-                <!-- Projects content would go here -->
+                {% if projects.count > 0 %}
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Project Name</th>
+                                        <th>Status</th>
+                                        <th>Due Date</th>
+                                        <th>Progress</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for project in projects %}
+                                    <tr>
+                                        <td class="fw-semibold">{{ project.name }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if project.status == 'completed' %}success{% elif project.status == 'in_progress' %}primary{% else %}warning{% endif %}">
+                                                {{ project.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ project.due_date|date:"M d, Y"|default:"Not set" }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 6px; width: 100px;">
+                                                <div class="progress-bar bg-success" style="width: {% if project.progress %}{{ project.progress }}{% else %}0{% endif %}%"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
                 <div class="card shadow-sm border-0">
                     <div class="card-body text-center py-5">
                         <i class="bi bi-kanban display-4 text-muted mb-3"></i>
-                        <h5 class="text-muted">Projects Overview</h5>
-                        <p class="text-muted">Track all active projects and their progress.</p>
-                        <a href="{% url 'manager:projects' %}" class="btn btn-primary">View All Projects</a>
+                        <h5 class="text-muted">No Projects Yet</h5>
+                        <p class="text-muted">Get started by creating your first project for this startup.</p>
+                        <a href="{% url 'projects:project_create' %}?startup={{ startup.id }}" class="btn btn-primary">Create First Project</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="tab-pane fade" id="financials" role="tabpanel">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-graph-up display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Financial Overview</h5>
+                        <p class="text-muted">Detailed financial metrics and performance indicators.</p>
+                        <a href="#" class="btn btn-primary">View Financial Details</a>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="financials" role="tabpanel">
-                <!-- Financials content would go here -->
-            </div>
             <div class="tab-pane fade" id="metrics" role="tabpanel">
-                <!-- KPIs content would go here -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-speedometer display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Key Performance Indicators</h5>
+                        <p class="text-muted">Track growth metrics and business performance.</p>
+                        <a href="#" class="btn btn-primary">View KPIs</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -362,11 +480,14 @@
         border-bottom: 2px solid var(--color-nest-green);
     }
 
-    .document-item:hover {
-        background-color: #f8f9fa;
-        border-radius: 0.375rem;
-        padding: 0.5rem;
-        margin: -0.5rem;
+    .financial-item, .document-item {
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .financial-item:last-child, .document-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
     }
 </style>
 
@@ -382,7 +503,6 @@
             });
         });
 
-        // Metric charts would be initialized here
         console.log('Startup detail page loaded for:', '{{ startup.name }}');
     });
 </script>

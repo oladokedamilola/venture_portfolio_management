@@ -1,364 +1,316 @@
+<!-- templates/investor/reports.html -->
 {% extends 'base_user.html' %}
 {% load static %}
+{% load humanize %}
+
+{% block title %}Investment Reports - Investor Dashboard{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-1">Investment Reports</h1>
-            <p class="text-muted">Analytics and insights from your portfolio</p>
+            <h1 class="h3 mb-1">Investment Reports & Analytics</h1>
+            <p class="text-muted">Comprehensive analysis of your investment portfolio</p>
         </div>
         <div class="btn-group">
-            <button class="btn btn-primary" onclick="generatePortfolioReport()">
-                <i class="fas fa-file-pdf me-2"></i>Generate Report
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>Print Report
             </button>
+            <a href="{% url 'investments:investor_portfolio' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Portfolio
+            </a>
         </div>
     </div>
 
-    <!-- Report Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-primary">
-                <div class="card-body text-center">
-                    <i class="fas fa-chart-pie fa-2x text-primary mb-3"></i>
-                    <h5>Portfolio Overview</h5>
-                    <p class="text-muted small">Complete portfolio analysis and allocation</p>
-                    <button class="btn btn-outline-primary btn-sm" onclick="showReport('portfolio')">
-                        View Report
-                    </button>
-                </div>
-            </div>
+    <!-- Executive Summary -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-chart-line me-2"></i>Executive Summary
+            </h5>
         </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
-                    <h5>Performance Analysis</h5>
-                    <p class="text-muted small">ROI and performance metrics</p>
-                    <button class="btn btn-outline-success btn-sm" onclick="showReport('performance')">
-                        View Report
-                    </button>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center mb-3">
+                    <div class="p-3 border rounded">
+                        <h3 class="text-primary mb-1">${{ total_invested|floatformat:0|intcomma }}</h3>
+                        <small class="text-muted">Total Capital Deployed</small>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <i class="fas fa-industry fa-2x text-warning mb-3"></i>
-                    <h5>Sector Analysis</h5>
-                    <p class="text-muted small">Industry and sector performance</p>
-                    <button class="btn btn-outline-warning btn-sm" onclick="showReport('sector')">
-                        View Report
-                    </button>
+                <div class="col-md-3 text-center mb-3">
+                    <div class="p-3 border rounded">
+                        <h3 class="{% if total_roi >= 0 %}text-success{% else %}text-danger{% endif %} mb-1">
+                            {{ total_roi|floatformat:1 }}%
+                        </h3>
+                        <small class="text-muted">Overall ROI</small>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <i class="fas fa-calendar-alt fa-2x text-info mb-3"></i>
-                    <h5>Quarterly Review</h5>
-                    <p class="text-muted small">Quarterly performance and trends</p>
-                    <button class="btn btn-outline-info btn-sm" onclick="showReport('quarterly')">
-                        View Report
-                    </button>
+                <div class="col-md-3 text-center mb-3">
+                    <div class="p-3 border rounded">
+                        <h3 class="text-warning mb-1">{{ total_startups }}</h3>
+                        <small class="text-muted">Portfolio Companies</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center mb-3">
+                    <div class="p-3 border rounded">
+                        <h3 class="text-info mb-1">{{ active_investments_count }}</h3>
+                        <small class="text-muted">Active Investments</small>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Report Content -->
     <div class="row">
-        <div class="col-lg-8">
-            <!-- Portfolio Performance -->
-            <div class="card mb-4">
+        <!-- Stage Performance -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Portfolio Performance Overview</h5>
+                    <h5 class="card-title mb-0">Performance by Investment Stage</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <canvas id="performanceTrendChart" height="200"></canvas>
-                        </div>
-                        <div class="col-md-6">
-                            <canvas id="roiDistributionChart" height="200"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr class="bg-light">
-                                    <th>Metric</th>
-                                    <th>Current</th>
-                                    <th>Previous Quarter</th>
-                                    <th>YTD</th>
-                                    <th>Change</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Portfolio Value</td>
-                                    <td>${{ current_value|floatformat:0|intcomma }}</td>
-                                    <td>${{ previous_quarter_value|floatformat:0|intcomma }}</td>
-                                    <td>${{ ytd_value|floatformat:0|intcomma }}</td>
-                                    <td class="{% if value_change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                        {{ value_change }}%
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Overall ROI</td>
-                                    <td>{{ current_roi }}%</td>
-                                    <td>{{ previous_quarter_roi }}%</td>
-                                    <td>{{ ytd_roi }}%</td>
-                                    <td class="{% if roi_change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                        {{ roi_change }}%
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Active Investments</td>
-                                    <td>{{ active_investments }}</td>
-                                    <td>{{ previous_active_investments }}</td>
-                                    <td>{{ ytd_active_investments }}</td>
-                                    <td class="{% if active_change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                        {{ active_change }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sector Performance -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Sector Performance Analysis</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-8">
-                            <canvas id="sectorPerformanceChart" height="250"></canvas>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="sector-metrics">
-                                {% for sector in sector_performance %}
-                                <div class="mb-3 p-3 border rounded">
-                                    <h6 class="mb-1">{{ sector.name }}</h6>
-                                    <div class="d-flex justify-content-between">
-                                        <small class="text-muted">Allocation: {{ sector.allocation }}%</small>
-                                        <small class="{% if sector.roi >= 0 %}text-success{% else %}text-danger{% endif %}">
-                                            {{ sector.roi }}% ROI
-                                        </small>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Quick Stats -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">Portfolio Snapshot</h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <small class="text-muted">Best Performer</small>
-                        <h6 class="mb-0">{{ best_performer.name }}</h6>
-                        <small class="text-success">+{{ best_performer.roi }}% ROI</small>
-                    </div>
-                    <div class="mb-3">
-                        <small class="text-muted">Worst Performer</small>
-                        <h6 class="mb-0">{{ worst_performer.name }}</h6>
-                        <small class="text-danger">{{ worst_performer.roi }}% ROI</small>
-                    </div>
-                    <div class="mb-3">
-                        <small class="text-muted">Diversification Score</small>
-                        <h6 class="mb-0">{{ diversification_score }}/100</h6>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar" style="width: {{ diversification_score }}%;"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <small class="text-muted">Risk Assessment</small>
-                        <h6 class="mb-0">{{ risk_level|title }}</h6>
-                        <small class="text-muted">Based on portfolio concentration</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Report Generation -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">Generate Custom Report</h6>
-                </div>
-                <div class="card-body">
-                    <form id="customReportForm">
-                        <div class="mb-3">
-                            <label class="form-label">Report Type</label>
-                            <select class="form-control" name="report_type">
-                                <option value="comprehensive">Comprehensive Portfolio</option>
-                                <option value="performance">Performance Only</option>
-                                <option value="sector">Sector Analysis</option>
-                                <option value="quarterly">Quarterly Review</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Date Range</label>
-                            <select class="form-control" name="date_range">
-                                <option value="ytd">Year to Date</option>
-                                <option value="last_quarter">Last Quarter</option>
-                                <option value="last_year">Last Year</option>
-                                <option value="all_time">All Time</option>
-                                <option value="custom">Custom Range</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Format</label>
-                            <select class="form-control" name="format">
-                                <option value="pdf">PDF</option>
-                                <option value="excel">Excel</option>
-                                <option value="csv">CSV</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-download me-2"></i>Generate Report
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Recent Reports -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">Recent Reports</h6>
-                </div>
-                <div class="card-body">
-                    {% for report in recent_reports %}
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    {% for stage in stage_performance %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
                         <div>
-                            <small class="d-block">{{ report.name }}</small>
-                            <small class="text-muted">{{ report.created_at|date:"M d, Y" }}</small>
+                            <h6 class="mb-1">{{ stage.round|title }}</h6>
+                            <small class="text-muted">{{ stage.count }} investment{{ stage.count|pluralize }}</small>
                         </div>
-                        <a href="{{ report.url }}" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-download"></i>
-                        </a>
+                        <div class="text-end">
+                            <strong>${{ stage.total_invested|floatformat:0|intcomma }}</strong>
+                            <br>
+                            <small class="{% if stage.avg_roi >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ stage.avg_roi|floatformat:1 }}% avg ROI
+                            </small>
+                        </div>
                     </div>
                     {% empty %}
-                    <p class="text-muted text-center small">No recent reports</p>
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-chart-bar fa-2x mb-3"></i>
+                        <p>No stage performance data available</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Industry Distribution -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Industry Distribution</h5>
+                </div>
+                <div class="card-body">
+                    {% for industry in industry_performance %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="fw-semibold">{{ industry.startup__industry|default:"Not Specified" }}</span>
+                            <br>
+                            <small class="text-muted">{{ industry.count }} compan{{ industry.count|pluralize:"y,ies" }}</small>
+                        </div>
+                        <div class="text-end">
+                            <strong>${{ industry.total_invested|floatformat:0|intcomma }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {% if total_invested > 0 %}
+                                    {{ industry.total_invested|divisibleby:total_invested|floatformat:1 }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                                of portfolio
+                            </small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-industry fa-2x mb-3"></i>
+                        <p>No industry data available</p>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Investment Status -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Investment Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    {% for status in status_distribution %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge 
+                                {% if status.status == 'active' %}bg-success
+                                {% elif status.status == 'exited' %}bg-info
+                                {% else %}bg-secondary{% endif %} me-2">
+                                {{ status.status|title }}
+                            </span>
+                            <span>{{ status.count }} investment{{ status.count|pluralize }}</span>
+                        </div>
+                        <div class="text-end">
+                            <strong>${{ status.total_amount|floatformat:0|intcomma }}</strong>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-3">
+                        <p>No status data available</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Yearly Investment Activity -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Yearly Investment Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% for year_data in investments_by_year %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="fw-semibold">{{ year_data.investment_date__year }}</span>
+                            <br>
+                            <small class="text-muted">{{ year_data.count }} deal{{ year_data.count|pluralize }}</small>
+                        </div>
+                        <div class="text-end">
+                            <strong>${{ year_data.total_amount|floatformat:0|intcomma }}</strong>
+                            <br>
+                            <small class="text-muted">Total invested</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-3">
+                        <p>No yearly data available</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Investments -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Recent Investments</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Startup</th>
+                            <th>Round</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>ROI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for investment in recent_investments %}
+                        <tr>
+                            <td>
+                                <strong>{{ investment.startup.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ investment.startup.industry|default:"Not specified" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ investment.get_round_display }}</span>
+                            </td>
+                            <td>
+                                <strong>${{ investment.amount|floatformat:0|intcomma }}</strong>
+                            </td>
+                            <td>
+                                <small>{{ investment.investment_date|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if investment.status == 'active' %}bg-success
+                                    {% elif investment.status == 'exited' %}bg-info
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ investment.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="{% if investment.current_roi >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    {{ investment.current_roi|floatformat:1 }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <p>No recent investments</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Footer -->
+    <div class="card mt-4">
+        <div class="card-body text-center text-muted">
+            <p class="mb-0">
+                Report generated on {{ current_date|date:"F d, Y" }} | 
+                Portfolio Value: ${{ estimated_value|floatformat:0|intcomma }} | 
+                Total ROI: {{ total_roi|floatformat:1 }}%
+            </p>
+        </div>
+    </div>
 </div>
 
+<style>
+.dashboard-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+@media print {
+    .btn {
+        display: none !important;
+    }
+    .card {
+        border: 1px solid #000 !important;
+        break-inside: avoid;
+    }
+}
+</style>
+
 <script>
-function showReport(type) {
-    // Implementation for showing specific reports
-    alert(`Showing ${type} report - this would load the specific report view`);
-}
-
-function generatePortfolioReport() {
-    // Implementation for generating portfolio report
-    alert('Portfolio report generation would be implemented here');
-}
-
-document.getElementById('customReportForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    alert(`Generating custom report: ${formData.get('report_type')} for ${formData.get('date_range')} in ${formData.get('format')} format`);
-});
-
-// Initialize charts
 document.addEventListener('DOMContentLoaded', function() {
-    // Performance Trend Chart
-    const trendCtx = document.getElementById('performanceTrendChart').getContext('2d');
-    new Chart(trendCtx, {
-        type: 'line',
-        data: {
-            labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2'],
-            datasets: [{
-                label: 'Portfolio Value',
-                data: [1200000, 1350000, 1420000, 1550000, 1680000, 1750000],
-                borderColor: 'var(--color-nest-green)',
-                backgroundColor: 'rgba(46, 125, 50, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + (value / 1000000).toFixed(1) + 'M';
-                        }
-                    }
-                }
-            }
-        }
+    // Add current date to the context
+    const now = new Date();
+    document.querySelectorAll('.current-date').forEach(el => {
+        el.textContent = now.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
     });
 
-    // ROI Distribution Chart
-    const roiCtx = document.getElementById('roiDistributionChart').getContext('2d');
-    new Chart(roiCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['High Performers (>50%)', 'Good (10-50%)', 'Neutral (-10% to 10%)', 'Underperformers (<-10%)'],
-            datasets: [{
-                data: [25, 40, 25, 10],
-                backgroundColor: [
-                    'var(--color-nest-green)',
-                    'var(--color-sky-blue)',
-                    'var(--color-warm-earth)',
-                    'var(--color-medium-grey)'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
+    // Export functionality
+    document.getElementById('exportPdf')?.addEventListener('click', function() {
+        alert('PDF export functionality would be implemented here');
     });
 
-    // Sector Performance Chart
-    const sectorCtx = document.getElementById('sectorPerformanceChart').getContext('2d');
-    new Chart(sectorCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Technology', 'Healthcare', 'Finance', 'E-commerce', 'Education'],
-            datasets: [{
-                label: 'Average ROI (%)',
-                data: [45, 32, 28, 52, 38],
-                backgroundColor: 'var(--color-nest-green)'
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
+    document.getElementById('exportExcel')?.addEventListener('click', function() {
+        alert('Excel export functionality would be implemented here');
     });
 });
 </script>

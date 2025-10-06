@@ -1,5 +1,7 @@
 {% extends 'base_user.html' %}
 {% load static %}
+{% load humanize %}
+{% block title %}My Funding Applications - VentureNest{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -9,7 +11,7 @@
             <h1 class="h3 mb-1">My Funding Applications</h1>
             <p class="text-muted">Track your funding applications and status</p>
         </div>
-        <a href="{% url 'founder_funding_apply' %}" class="btn btn-primary">
+        <a href="{% url 'funding:founder_funding_apply' %}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>New Application
         </a>
     </div>
@@ -59,9 +61,9 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Funding Applications</h5>
             <div class="btn-group">
-                <button class="btn btn-sm btn-outline-secondary" onclick="filterApplications('all')">All</button>
-                <button class="btn btn-sm btn-outline-primary" onclick="filterApplications('pending')">Pending</button>
-                <button class="btn btn-sm btn-outline-warning" onclick="filterApplications('review')">Review</button>
+                <button class="btn btn-sm btn-outline-secondary active" onclick="filterApplications('all')">All</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="filterApplications('submitted')">Pending</button>
+                <button class="btn btn-sm btn-outline-warning" onclick="filterApplications('under_review')">Review</button>
                 <button class="btn btn-sm btn-outline-success" onclick="filterApplications('approved')">Approved</button>
             </div>
         </div>
@@ -86,10 +88,10 @@
                             <td>
                                 <strong>{{ application.startup.name }}</strong>
                                 <br>
-                                <small class="text-muted">{{ application.startup.industry }}</small>
+                                <small class="text-muted">{{ application.startup.industry|default:"No industry specified" }}</small>
                             </td>
                             <td>
-                                <span class="badge bg-earth text-white">
+                                <span class="badge bg-primary text-white">
                                     {{ application.get_funding_round_display }}
                                 </span>
                             </td>
@@ -148,7 +150,7 @@
                                 <i class="fas fa-file-invoice-dollar fa-3x text-muted mb-3"></i>
                                 <h5>No funding applications yet</h5>
                                 <p class="text-muted">Submit your first funding application to get started</p>
-                                <a href="{% url 'founder_funding_apply' %}" class="btn btn-primary">
+                                <a href="{% url 'funding:founder_funding_apply' %}" class="btn btn-primary">
                                     Apply for Funding
                                 </a>
                             </td>
@@ -160,7 +162,7 @@
         </div>
     </div>
 
-    <!-- Recent Activity -->
+    <!-- Recent Activity & Next Steps -->
     <div class="row mt-4">
         <div class="col-lg-6">
             <div class="card">
@@ -169,20 +171,25 @@
                 </div>
                 <div class="card-body">
                     <div class="timeline">
-                        {% for activity in recent_activities %}
+                        {% for application in applications|slice:":5" %}
                         <div class="timeline-item mb-3">
                             <div class="d-flex">
-                                <div class="timeline-marker bg-nest rounded-circle me-3" 
+                                <div class="timeline-marker bg-primary rounded-circle me-3" 
                                      style="width: 12px; height: 12px; margin-top: 5px;"></div>
                                 <div class="flex-grow-1">
-                                    <strong>{{ activity.title }}</strong>
-                                    <p class="small text-muted mb-1">{{ activity.description }}</p>
-                                    <small class="text-muted">{{ activity.date|date:"M d, Y H:i" }}</small>
+                                    <strong>{{ application.startup.name }}</strong>
+                                    <p class="small text-muted mb-1">
+                                        {{ application.get_funding_round_display }} - ${{ application.amount|floatformat:0|intcomma }}
+                                        <span class="badge bg-{% if application.status == 'submitted' %}primary{% elif application.status == 'under_review' %}warning{% elif application.status == 'approved' %}success{% elif application.status == 'rejected' %}danger{% else %}secondary{% endif %} ms-1">
+                                            {{ application.get_status_display }}
+                                        </span>
+                                    </p>
+                                    <small class="text-muted">Applied: {{ application.created_at|date:"M d, Y" }}</small>
                                 </div>
                             </div>
                         </div>
                         {% empty %}
-                        <p class="text-muted text-center">No recent activity</p>
+                        <p class="text-muted text-center">No applications yet</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -200,17 +207,24 @@
                         <h6 class="mb-1">{{ application.startup.name }}</h6>
                         <p class="small text-muted mb-2">Waiting for review - {{ application.get_funding_round_display }} round</p>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar" style="width: 25%;"></div>
+                            <div class="progress-bar bg-primary" style="width: 25%;"></div>
                         </div>
                     </div>
                     {% empty %}
-                    <p class="text-muted text-center">No pending applications</p>
+                    <p class="text-muted">No pending applications requiring action</p>
                     {% endfor %}
 
-                    {% if applications_under_review %}
+                    {% if applications_review %}
                     <div class="alert alert-warning">
                         <h6 class="alert-heading">Applications Under Review</h6>
-                        <p class="small mb-0">You have {{ applications_under_review.count }} application(s) currently being reviewed by the investment committee.</p>
+                        <p class="small mb-0">You have {{ applications_review.count }} application(s) currently being reviewed by the investment committee.</p>
+                    </div>
+                    {% endif %}
+
+                    {% if applications_approved %}
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading">Approved Applications</h6>
+                        <p class="small mb-0">You have {{ applications_approved.count }} approved application(s) awaiting funding.</p>
                     </div>
                     {% endif %}
                 </div>
@@ -239,13 +253,23 @@
     }
 
     // Initialize tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     });
 </script>
 
 <style>
+.dashboard-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
 .timeline {
     position: relative;
 }
@@ -257,11 +281,21 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background-color: var(--color-light-grey);
+    background-color: #e9ecef;
 }
 
 .timeline-item {
     position: relative;
+}
+
+.application-row:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-group .btn.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
 }
 </style>
 {% endblock %}
